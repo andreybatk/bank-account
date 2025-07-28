@@ -1,11 +1,8 @@
 ﻿using BankAccount.BusinessLogic.Accounts.Commands;
+using BankAccount.BusinessLogic.Accounts.DTOs;
+using BankAccount.BusinessLogic.Accounts.Mappers;
 using BankAccount.Domain.Entities;
 using BankAccount.Domain.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BankAccount.BusinessLogic.Accounts
 {
@@ -28,13 +25,43 @@ namespace BankAccount.BusinessLogic.Accounts
                 Currency = command.Currency,
                 Balance = command.InitialBalance,
                 InterestRate = command.InterestRate,
-                OpenDate = DateTime.UtcNow
+                OpenDate = command.OpenDate,
+                CloseDate = command.CloseDate
             };
 
-            // Дополнительная бизнес-логика может быть здесь, например:
-            // Проверка, что у клиента нет дубликатов и т.п.
-
             return await _accountRepository.CreateAsync(account);
+        }
+
+        public async Task<Guid> UpdateAccountAsync(UpdateAccountCommand command)
+        {
+            var account = new Account
+            {
+                Id = command.AccountId,
+                OwnerId = command.OwnerId,
+                Type = command.Type,
+                Currency = command.Currency,
+                Balance = command.InitialBalance,
+                InterestRate = command.InterestRate,
+                OpenDate = command.OpenDate,
+                CloseDate = command.CloseDate
+            };
+
+            return await _accountRepository.UpdateAsync(account);
+        }
+
+        public async Task<Guid> DeleteAccountAsync(Guid accountId)
+        {
+            return await _accountRepository.DeleteAsync(accountId);
+        }
+
+        public async Task<List<AccountResponse>> GetAccountsByOwnerIdAsync(Guid ownerId)
+        {
+            return AccountMapper.ToResponseList(await _accountRepository.GetAllByOwnerIdAsync(ownerId));
+        }
+
+        public async Task<AccountStatementResponse> GetAccountStatementAsync(Guid ownerId, Guid accountId)
+        {
+            return AccountMapper.ToStatementResponse(await _accountRepository.GetByOwnerIdAsync(ownerId, accountId));
         }
     }
 }

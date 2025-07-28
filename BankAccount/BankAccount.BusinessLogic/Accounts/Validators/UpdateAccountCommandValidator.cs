@@ -4,12 +4,15 @@ using FluentValidation;
 
 namespace BankAccount.BusinessLogic.Accounts.Validators
 {
-    public class CreateAccountCommandValidator : AbstractValidator<CreateAccountCommand>
+    public class UpdateAccountCommandValidator : AbstractValidator<UpdateAccountCommand>
     {
-        public CreateAccountCommandValidator()
+        public UpdateAccountCommandValidator()
         {
+            RuleFor(x => x.AccountId)
+                .NotEmpty().WithMessage("Необходимо указать идентификатор счёта");
+
             RuleFor(x => x.OwnerId)
-                .NotEmpty().WithMessage("Необходимо указать идентификатор владельца.");
+                 .NotEmpty().WithMessage("Необходимо указать идентификатор владельца.");
 
             RuleFor(x => x.Type)
                 .IsInEnum().WithMessage("Указан недопустимый тип счёта.");
@@ -39,6 +42,5 @@ namespace BankAccount.BusinessLogic.Accounts.Validators
                 .GreaterThan(x => x.CloseDate)
                 .When(x => x.CloseDate.HasValue).WithMessage("Дата закрытия должна быть позже даты открытия.");
         }
-
     }
 }

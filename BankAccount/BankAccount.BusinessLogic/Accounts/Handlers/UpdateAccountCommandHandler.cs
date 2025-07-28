@@ -5,20 +5,23 @@ using BankAccount.Domain.Interfaces;
 
 namespace BankAccount.BusinessLogic.Accounts.Handlers
 {
-    public class CreateAccountCommandHandler : ICommandHandler<CreateAccountCommand, Guid>
+    public class UpdateAccountCommandHandler : ICommandHandler<UpdateAccountCommand, Guid>
     {
         private readonly IAccountService _accountService;
         private readonly IClientVerificationService _clientVerificationService;
         private readonly ICurrencyService _currencyService;
 
-        public CreateAccountCommandHandler(IAccountService accountService, IClientVerificationService clientVerificationService, ICurrencyService currencyService)
+        public UpdateAccountCommandHandler(
+            IAccountService accountService,
+            IClientVerificationService clientVerificationService,
+            ICurrencyService currencyService)
         {
             _accountService = accountService;
             _clientVerificationService = clientVerificationService;
             _currencyService = currencyService;
         }
 
-        public async Task<Guid> Handle(CreateAccountCommand request, CancellationToken cancellationToken)
+        public async Task<Guid> Handle(UpdateAccountCommand request, CancellationToken cancellationToken)
         {
             var errors = new Dictionary<string, string[]>();
 
@@ -33,9 +36,8 @@ namespace BankAccount.BusinessLogic.Accounts.Handlers
             if (errors.Any())
                 throw new ValidationException(errors);
 
-            var accountId = await _accountService.CreateAccountAsync(request);
-
-            return accountId;
+            return await _accountService.UpdateAccountAsync(request);
         }
     }
+
 }

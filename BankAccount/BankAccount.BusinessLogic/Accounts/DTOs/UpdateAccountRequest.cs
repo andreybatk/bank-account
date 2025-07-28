@@ -2,7 +2,7 @@
 
 namespace BankAccount.BusinessLogic.Accounts.DTOs
 {
-    public class CreateAccountRequest
+    public class UpdateAccountRequest
     {
         public Guid OwnerId { get; set; }
         public AccountType Type { get; set; }
