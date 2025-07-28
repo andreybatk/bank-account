@@ -45,7 +45,7 @@ namespace BankAccount.API.Middlewares
                 case BankAccount.Domain.Exceptions.ValidationException validationException:
                     problemDetails.Status = StatusCodes.Status400BadRequest;
                     problemDetails.Title = "Validation error";
-                    problemDetails.Type = "ValidationFailure";
+                    problemDetails.Type = "Validation failure";
                     problemDetails.Detail = "One or more validation errors occurred";
                     problemDetails.Extensions["errors"] = validationException.Errors;
                     break;
