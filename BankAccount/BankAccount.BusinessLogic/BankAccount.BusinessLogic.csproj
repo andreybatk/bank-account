@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BankAccount.DataAccess\BankAccount.DataAccess.csproj" />
+    <ProjectReference Include="..\BankAccount.Domain\BankAccount.Domain.csproj" />
   </ItemGroup>
 
 </Project>

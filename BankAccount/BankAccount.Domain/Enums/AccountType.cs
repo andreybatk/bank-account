@@ -1,4 +1,4 @@
-﻿namespace BankAccount.BusinessLogic.Enums
+﻿namespace BankAccount.Domain.Enums
 {
     public enum AccountType
     {

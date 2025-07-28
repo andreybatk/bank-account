@@ -1,6 +1,6 @@
-﻿using BankAccount.BusinessLogic.Enums;
+﻿using BankAccount.Domain.Enums;
 
-namespace BankAccount.BusinessLogic.Entities
+namespace BankAccount.Domain.Entities
 {
     public class Account
     {
@@ -19,7 +19,7 @@ namespace BankAccount.BusinessLogic.Entities
         /// <summary>
         /// Валюта (ISO4217)
         /// </summary>
-        public string Currency { get; set; } = "RUB";
+        public string Currency { get; set; } = string.Empty;
         /// <summary>
         /// Баланс
         /// </summary>
