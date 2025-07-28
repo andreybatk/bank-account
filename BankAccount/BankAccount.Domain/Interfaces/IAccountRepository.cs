@@ -21,24 +21,24 @@ namespace BankAccount.Domain.Interfaces
         /// </summary>
         /// <param name="accountId"></param>
         /// <returns></returns>
-        Task DeleteAsync(Guid accountId);
-        /// <summary>
-        /// Получить список счетов
-        /// </summary>
-        /// <returns></returns>
-        Task<List<Account>> GetAllAsync();
+        Task<Guid> DeleteAsync(Guid accountId);
         /// <summary>
         /// Получить счет
         /// </summary>
         /// <param name="accountId"></param>
         /// <returns></returns>
-        Task<Account?> GetByIdAsync(Guid accountId);
+        Task<Account> GetByIdAsync(Guid accountId);
+        /// <summary>
+        /// Получить список счетов у клиента
+        /// </summary>
+        /// <returns></returns>
+        Task<List<Account>> GetAllByOwnerIdAsync(Guid ownerId);
         /// <summary>
         /// Выдать выписку клиенту
         /// </summary>
         /// <param name="ownerId"></param>
         /// <returns></returns>
-        Task<List<Account>> GetByOwnerIdAsync(Guid ownerId);
+        Task<Account> GetByOwnerIdAsync(Guid ownerId, Guid accountId);
         /// <summary>
         /// Проверить наличие счёта у клиента
         /// </summary>

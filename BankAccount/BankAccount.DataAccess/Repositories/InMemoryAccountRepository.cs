@@ -28,30 +28,34 @@ namespace BankAccount.DataAccess.Repositories
             return Task.FromResult(existing.Id);
         }
 
-        public Task DeleteAsync(Guid accountId)
+        public Task<Guid> DeleteAsync(Guid accountId)
         {
             var account = _accounts.FirstOrDefault(a => a.Id == accountId)
                ?? throw new AccountNotFoundException(accountId);
 
             _accounts.Remove(account);
-            return Task.CompletedTask;
+            return Task.FromResult(accountId);
         }
 
-        public Task<List<Account>> GetAllAsync()
+        public Task<Account> GetByIdAsync(Guid accountId)
         {
-            return Task.FromResult(_accounts.ToList());
-        }
+            var account = _accounts.FirstOrDefault(a => a.Id == accountId)
+               ?? throw new AccountNotFoundException(accountId);
 
-        public Task<Account?> GetByIdAsync(Guid accountId)
-        {
-            var account = _accounts.FirstOrDefault(a => a.Id == accountId);
             return Task.FromResult(account);
         }
 
-        public Task<List<Account>> GetByOwnerIdAsync(Guid ownerId)
+        public Task<List<Account>> GetAllByOwnerIdAsync(Guid ownerId)
         {
-            var accounts = _accounts.Where(a => a.OwnerId == ownerId).ToList();
-            return Task.FromResult(accounts);
+            return Task.FromResult(_accounts.Where(a => a.OwnerId == ownerId).ToList());
+        }
+
+        public Task<Account> GetByOwnerIdAsync(Guid ownerId, Guid accountId)
+        {
+            var account = _accounts.FirstOrDefault(a => a.OwnerId == ownerId && a.Id == accountId)
+                ?? throw new AccountNotFoundException(accountId);
+
+            return Task.FromResult(account);
         }
 
         public Task<bool> ExistsAsync(Guid ownerId)
