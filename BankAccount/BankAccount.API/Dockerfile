@@ -13,6 +13,8 @@ FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["BankAccount.API/BankAccount.API.csproj", "BankAccount.API/"]
+COPY ["BankAccount.DataAccess/BankAccount.DataAccess.csproj", "BankAccount.DataAccess/"]
+COPY ["BankAccount.BusinessLogic/BankAccount.BusinessLogic.csproj", "BankAccount.BusinessLogic/"]
 RUN dotnet restore "./BankAccount.API/BankAccount.API.csproj"
 COPY . .
 WORKDIR "/src/BankAccount.API"
