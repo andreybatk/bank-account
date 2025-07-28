@@ -1,7 +1,10 @@
 using BankAccount.API.Middlewares;
 using BankAccount.BusinessLogic;
 using BankAccount.BusinessLogic.Validators;
+using BankAccount.Domain.Interfaces;
+using BankAccount.DataAccess.Repositories;
 using FluentValidation;
+using BankAccount.BusinessLogic.Accounts;
 
 namespace BankAccount.API
 {
@@ -22,6 +25,11 @@ namespace BankAccount.API
 
             builder.Services.AddValidatorsFromAssembly(typeof(BusinessLogicAssemblyMarker).Assembly);
 
+            builder.Services.AddSingleton<IAccountService, AccountService>();
+            builder.Services.AddSingleton<IAccountRepository, InMemoryAccountRepository>();
+            builder.Services.AddSingleton<ITransactionRepository, InMemoryTransactionRepository>();
+            builder.Services.AddSingleton<ICurrencyService, CurrencyService>();
+            builder.Services.AddSingleton<IClientVerificationService, ClientVerificationService>();
 
             var app = builder.Build();
 
@@ -32,7 +40,7 @@ namespace BankAccount.API
             }
 
             app.UseHttpsRedirection();
-            app.UseMiddleware<ValidationExceptionHandlingMiddleware>();
+            app.UseMiddleware<ExceptionHandlingMiddleware>();
             app.MapControllers();
 
             app.Run();
