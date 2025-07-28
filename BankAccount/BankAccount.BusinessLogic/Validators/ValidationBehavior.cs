@@ -27,13 +27,13 @@ namespace BankAccount.BusinessLogic.Validators
                     .Select(f => new { f.PropertyName, f.ErrorMessage })
                     .ToList();
 
-                if (errors.Any())
-                    throw new BusinessLogic.Exceptions.ValidationException(errors
+                if (errors.Count != 0)
+                    throw new Domain.Exceptions.ValidationException(errors
                         .GroupBy(e => e.PropertyName)
                         .ToDictionary(g => g.Key, g => g.Select(e => e.ErrorMessage).ToArray()));
             }
 
-            return await next();
+            return await next(cancellationToken);
         }
     }
 }
