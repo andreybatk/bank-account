@@ -1,4 +1,4 @@
-﻿namespace BankAccount.BusinessLogic.Exceptions
+﻿namespace BankAccount.Domain.Exceptions
 {
     public class ValidationException : Exception
     {
