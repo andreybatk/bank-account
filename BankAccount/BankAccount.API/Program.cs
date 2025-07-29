@@ -1,10 +1,11 @@
+using BankAccount.API.Helpers;
 using BankAccount.API.Middlewares;
 using BankAccount.BusinessLogic;
 using BankAccount.BusinessLogic.Validators;
 using BankAccount.Domain.Interfaces;
 using BankAccount.DataAccess.Repositories;
 using FluentValidation;
-using BankAccount.BusinessLogic.Accounts;
+using BankAccount.BusinessLogic.Services;
 
 namespace BankAccount.API;
 
@@ -14,8 +15,17 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
-        builder.Services.AddControllers();
-        builder.Services.AddSwaggerGen();
+        builder.Services
+            .AddControllers()
+            .AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+            });
+
+        builder.Services.AddSwaggerGen(c =>
+        {
+            c.SchemaFilter<EnumSchemaFilter>();
+        });
 
         builder.Services.AddMediatR(config =>
         {
@@ -25,7 +35,6 @@ public class Program
 
         builder.Services.AddValidatorsFromAssembly(typeof(BusinessLogicAssemblyMarker).Assembly);
 
-        builder.Services.AddSingleton<IAccountService, AccountService>();
         builder.Services.AddSingleton<IAccountRepository, InMemoryAccountRepository>();
         builder.Services.AddSingleton<ITransactionRepository, InMemoryTransactionRepository>();
         builder.Services.AddSingleton<ICurrencyService, CurrencyService>();
