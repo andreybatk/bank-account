@@ -7,12 +7,12 @@ namespace BankAccount.BusinessLogic.Accounts.Handlers;
 
 public class CheckAccountExistsQueryHandler : IQueryHandler<CheckAccountExistsQuery, bool>
 {
-    private readonly IAccountService _accountService;
+    private readonly IAccountRepository _accountRepository;
     private readonly IClientVerificationService _clientVerificationService;
 
-    public CheckAccountExistsQueryHandler(IAccountService accountService, IClientVerificationService clientVerificationService)
+    public CheckAccountExistsQueryHandler(IAccountRepository accountRepository, IClientVerificationService clientVerificationService)
     {
-        _accountService = accountService;
+        _accountRepository = accountRepository;
         _clientVerificationService = clientVerificationService;
     }
 
@@ -27,6 +27,6 @@ public class CheckAccountExistsQueryHandler : IQueryHandler<CheckAccountExistsQu
         if (errors.Count != 0)
             throw new ValidationException(errors);
 
-        return await _accountService.AccountExistsAsync(request.OwnerId);
+        return await _accountRepository.ExistsByOwnerIdAsync(request.OwnerId);
     }
 }

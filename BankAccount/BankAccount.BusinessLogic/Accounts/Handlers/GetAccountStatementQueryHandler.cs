@@ -1,5 +1,6 @@
 ﻿using BankAccount.BusinessLogic.Abstractions.Messaging;
 using BankAccount.BusinessLogic.Accounts.DTOs;
+using BankAccount.BusinessLogic.Accounts.Mappers;
 using BankAccount.BusinessLogic.Accounts.Queries;
 using BankAccount.Domain.Exceptions;
 using BankAccount.Domain.Interfaces;
@@ -9,12 +10,12 @@ namespace BankAccount.BusinessLogic.Accounts.Handlers;
 public class GetAccountStatementQueryHandler
     : IQueryHandler<GetAccountStatementQuery, AccountStatementResponse>
 {
-    private readonly IAccountService _accountService;
+    private readonly IAccountRepository _accountRepository;
     private readonly IClientVerificationService _clientVerificationService;
 
-    public GetAccountStatementQueryHandler(IAccountService accountService, IClientVerificationService clientVerificationService)
+    public GetAccountStatementQueryHandler(IAccountRepository accountRepository, IClientVerificationService clientVerificationService)
     {
-        _accountService = accountService;
+        _accountRepository = accountRepository;
         _clientVerificationService = clientVerificationService;
     }
 
@@ -29,6 +30,6 @@ public class GetAccountStatementQueryHandler
         if (errors.Count != 0)
             throw new ValidationException(errors);
 
-        return await _accountService.GetAccountStatementAsync(request.OwnerId, request.AccountId);         
+        return AccountMapper.ToStatementResponse(await _accountRepository.GetByOwnerIdAsync(request.OwnerId, request.AccountId));
     }
 }

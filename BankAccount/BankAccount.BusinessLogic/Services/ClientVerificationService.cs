@@ -1,6 +1,6 @@
 ﻿using BankAccount.Domain.Interfaces;
 
-namespace BankAccount.BusinessLogic.Accounts;
+namespace BankAccount.BusinessLogic.Services;
 
 public class ClientVerificationService : IClientVerificationService
 {

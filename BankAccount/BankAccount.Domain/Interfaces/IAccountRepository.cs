@@ -46,5 +46,11 @@ public interface IAccountRepository
     /// </summary>
     /// <param name="ownerId"></param>
     /// <returns></returns>
-    Task<bool> ExistsAsync(Guid ownerId);
+    Task<bool> ExistsByOwnerIdAsync(Guid ownerId);
+    /// <summary>
+    /// Проверить существование счёта
+    /// </summary>
+    /// <param name="accountId"></param>
+    /// <returns></returns>
+    Task<bool> ExistsByIdAsync(Guid accountId);
 }

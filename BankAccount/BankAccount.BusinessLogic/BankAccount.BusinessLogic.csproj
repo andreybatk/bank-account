@@ -16,9 +16,4 @@
     <ProjectReference Include="..\BankAccount.Domain\BankAccount.Domain.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="AccountTransactions\Handlers\" />
-    <Folder Include="AccountTransactions\Validators\" />
-  </ItemGroup>
-
 </Project>

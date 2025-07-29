@@ -58,8 +58,13 @@ public class InMemoryAccountRepository : IAccountRepository
         return Task.FromResult(account);
     }
 
-    public Task<bool> ExistsAsync(Guid ownerId)
+    public Task<bool> ExistsByOwnerIdAsync(Guid ownerId)
     {
         return Task.FromResult(_accounts.Any(a => a.OwnerId == ownerId));
+    }
+
+    public Task<bool> ExistsByIdAsync(Guid accountId)
+    {
+        return Task.FromResult(_accounts.Any(a => a.Id == accountId));
     }
 }

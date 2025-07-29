@@ -1,21 +1,20 @@
 ﻿using BankAccount.BusinessLogic.Abstractions.Messaging;
 using BankAccount.BusinessLogic.Accounts.Commands;
+using BankAccount.Domain.Interfaces;
 
 namespace BankAccount.BusinessLogic.Accounts.Handlers;
 
 public class DeleteAccountCommandHandler : ICommandHandler<DeleteAccountCommand, Guid>
 {
-    private readonly IAccountService _accountService;
+    private readonly IAccountRepository _accountRepository;
 
-    public DeleteAccountCommandHandler(IAccountService accountService)
+    public DeleteAccountCommandHandler(IAccountRepository accountRepository)
     {
-        _accountService = accountService;
+        _accountRepository = accountRepository;
     }
 
     public async Task<Guid> Handle(DeleteAccountCommand request, CancellationToken cancellationToken)
     {
-        var deletedId = await _accountService.DeleteAccountAsync(request.AccountId);
-
-        return deletedId;
+        return await _accountRepository.DeleteAsync(request.AccountId);
     }
 }
