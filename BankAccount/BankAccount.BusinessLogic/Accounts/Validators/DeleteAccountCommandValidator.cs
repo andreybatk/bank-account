@@ -1,14 +1,13 @@
 ﻿using BankAccount.BusinessLogic.Accounts.Commands;
 using FluentValidation;
 
-namespace BankAccount.BusinessLogic.Accounts.Validators
+namespace BankAccount.BusinessLogic.Accounts.Validators;
+
+public class DeleteAccountCommandValidator : AbstractValidator<DeleteAccountCommand>
 {
-    public class DeleteAccountCommandValidator : AbstractValidator<DeleteAccountCommand>
+    public DeleteAccountCommandValidator()
     {
-        public DeleteAccountCommandValidator()
-        {
-            RuleFor(x => x.AccountId)
-                .NotEmpty().WithMessage("Необходимо указать идентификатор счёта.");
-        }
+        RuleFor(x => x.AccountId)
+            .NotEmpty().WithMessage("Необходимо указать идентификатор счёта.");
     }
 }

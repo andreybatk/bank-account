@@ -1,12 +1,11 @@
 ﻿using BankAccount.Domain.Interfaces;
 
-namespace BankAccount.BusinessLogic.Accounts
+namespace BankAccount.BusinessLogic.Accounts;
+
+public class ClientVerificationService : IClientVerificationService
 {
-    public class ClientVerificationService : IClientVerificationService
+    public Task<bool> ClientExistsAsync(Guid ownerId)
     {
-        public Task<bool> ClientExistsAsync(Guid ownerId)
-        {
-            return Task.FromResult(true);
-        }
+        return Task.FromResult(true);
     }
 }

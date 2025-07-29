@@ -1,10 +1,9 @@
-﻿namespace BankAccount.Domain.Interfaces
+﻿namespace BankAccount.Domain.Interfaces;
+
+public interface IClientVerificationService
 {
-    public interface IClientVerificationService
-    {
-        /// <summary>
-        /// Проверяет существование клиента по его OwnerId
-        /// </summary>
-        Task<bool> ClientExistsAsync(Guid ownerId);
-    }
+    /// <summary>
+    /// Проверяет существование клиента по его OwnerId
+    /// </summary>
+    Task<bool> ClientExistsAsync(Guid ownerId);
 }

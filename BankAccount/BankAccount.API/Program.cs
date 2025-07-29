@@ -6,44 +6,43 @@ using BankAccount.DataAccess.Repositories;
 using FluentValidation;
 using BankAccount.BusinessLogic.Accounts;
 
-namespace BankAccount.API
+namespace BankAccount.API;
+
+public class Program
 {
-    public class Program
+    public static void Main(string[] args)
     {
-        public static void Main(string[] args)
+        var builder = WebApplication.CreateBuilder(args);
+
+        builder.Services.AddControllers();
+        builder.Services.AddSwaggerGen();
+
+        builder.Services.AddMediatR(config =>
         {
-            var builder = WebApplication.CreateBuilder(args);
+            config.RegisterServicesFromAssemblyContaining<BusinessLogicAssemblyMarker>();
+            config.AddOpenBehavior(typeof(ValidationBehavior<,>));
+        });
 
-            builder.Services.AddControllers();
-            builder.Services.AddSwaggerGen();
+        builder.Services.AddValidatorsFromAssembly(typeof(BusinessLogicAssemblyMarker).Assembly);
 
-            builder.Services.AddMediatR(config =>
-            {
-                config.RegisterServicesFromAssemblyContaining<BusinessLogicAssemblyMarker>();
-                config.AddOpenBehavior(typeof(ValidationBehavior<,>));
-            });
+        builder.Services.AddSingleton<IAccountService, AccountService>();
+        builder.Services.AddSingleton<IAccountRepository, InMemoryAccountRepository>();
+        builder.Services.AddSingleton<ITransactionRepository, InMemoryTransactionRepository>();
+        builder.Services.AddSingleton<ICurrencyService, CurrencyService>();
+        builder.Services.AddSingleton<IClientVerificationService, ClientVerificationService>();
 
-            builder.Services.AddValidatorsFromAssembly(typeof(BusinessLogicAssemblyMarker).Assembly);
+        var app = builder.Build();
 
-            builder.Services.AddSingleton<IAccountService, AccountService>();
-            builder.Services.AddSingleton<IAccountRepository, InMemoryAccountRepository>();
-            builder.Services.AddSingleton<ITransactionRepository, InMemoryTransactionRepository>();
-            builder.Services.AddSingleton<ICurrencyService, CurrencyService>();
-            builder.Services.AddSingleton<IClientVerificationService, ClientVerificationService>();
-
-            var app = builder.Build();
-
-            if (app.Environment.IsDevelopment())
-            {
-                app.UseSwagger();
-                app.UseSwaggerUI();
-            }
-
-            app.UseHttpsRedirection();
-            app.UseMiddleware<ExceptionHandlingMiddleware>();
-            app.MapControllers();
-
-            app.Run();
+        if (app.Environment.IsDevelopment())
+        {
+            app.UseSwagger();
+            app.UseSwaggerUI();
         }
+
+        app.UseHttpsRedirection();
+        app.UseMiddleware<ExceptionHandlingMiddleware>();
+        app.MapControllers();
+
+        app.Run();
     }
 }

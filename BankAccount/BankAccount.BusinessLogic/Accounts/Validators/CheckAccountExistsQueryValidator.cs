@@ -3,9 +3,9 @@ using FluentValidation;
 
 namespace BankAccount.BusinessLogic.Accounts.Validators;
 
-public class GetAccountsByOwnerIdQueryValidator : AbstractValidator<GetAccountsByOwnerIdQuery>
+public class CheckAccountExistsQueryValidator : AbstractValidator<CheckAccountExistsQuery>
 {
-    public GetAccountsByOwnerIdQueryValidator()
+    public CheckAccountExistsQueryValidator()
     {
         RuleFor(x => x.OwnerId)
             .NotEmpty().WithMessage("Необходимо указать идентификатор владельца.");

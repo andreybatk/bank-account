@@ -1,9 +1,8 @@
-﻿namespace BankAccount.Domain.Enums
+﻿namespace BankAccount.Domain.Enums;
+
+public enum AccountType
 {
-    public enum AccountType
-    {
-        Checking,
-        Deposit,
-        Credit
-    }
+    Checking,
+    Deposit,
+    Credit
 }

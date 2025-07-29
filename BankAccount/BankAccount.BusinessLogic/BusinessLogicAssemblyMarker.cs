@@ -1,4 +1,3 @@
-﻿namespace BankAccount.BusinessLogic
-{
-    public class BusinessLogicAssemblyMarker { }
-}
+﻿namespace BankAccount.BusinessLogic;
+
+public class BusinessLogicAssemblyMarker;

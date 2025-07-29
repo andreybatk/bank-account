@@ -1,10 +1,9 @@
-﻿namespace BankAccount.Domain.Interfaces
+﻿namespace BankAccount.Domain.Interfaces;
+
+public interface ICurrencyService
 {
-    public interface ICurrencyService
-    {
-        /// <summary>
-        /// Проверяет, поддерживается ли указанная валюта (ISO 4217)
-        /// </summary>
-        Task<bool> IsCurrencySupportedAsync(string currencyCode);
-    }
+    /// <summary>
+    /// Проверяет, поддерживается ли указанная валюта (ISO 4217)
+    /// </summary>
+    Task<bool> IsCurrencySupportedAsync(string currencyCode);
 }

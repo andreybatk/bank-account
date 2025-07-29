@@ -1,23 +1,22 @@
 ﻿using BankAccount.BusinessLogic.Abstractions.Messaging;
-using BankAccount.BusinessLogic.Accounts.DTOs;
 using BankAccount.BusinessLogic.Accounts.Queries;
 using BankAccount.Domain.Exceptions;
 using BankAccount.Domain.Interfaces;
 
 namespace BankAccount.BusinessLogic.Accounts.Handlers;
 
-public class GetAccountsByOwnerIdQueryHandler : IQueryHandler<GetAccountsByOwnerIdQuery, List<AccountResponse>>
+public class CheckAccountExistsQueryHandler : IQueryHandler<CheckAccountExistsQuery, bool>
 {
     private readonly IAccountService _accountService;
     private readonly IClientVerificationService _clientVerificationService;
 
-    public GetAccountsByOwnerIdQueryHandler(IAccountService accountService, IClientVerificationService clientVerificationService)
+    public CheckAccountExistsQueryHandler(IAccountService accountService, IClientVerificationService clientVerificationService)
     {
         _accountService = accountService;
         _clientVerificationService = clientVerificationService;
     }
 
-    public async Task<List<AccountResponse>> Handle(GetAccountsByOwnerIdQuery request, CancellationToken cancellationToken)
+    public async Task<bool> Handle(CheckAccountExistsQuery request, CancellationToken cancellationToken)
     {
         var errors = new Dictionary<string, string[]>();
 
@@ -28,6 +27,6 @@ public class GetAccountsByOwnerIdQueryHandler : IQueryHandler<GetAccountsByOwner
         if (errors.Count != 0)
             throw new ValidationException(errors);
 
-        return await _accountService.GetAccountsByOwnerIdAsync(request.OwnerId);
+        return await _accountService.AccountExistsAsync(request.OwnerId);
     }
 }
