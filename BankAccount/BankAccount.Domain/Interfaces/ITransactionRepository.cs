@@ -9,5 +9,5 @@ public interface ITransactionRepository
     /// </summary>
     /// <param name="transaction"></param>
     /// <returns></returns>
-    Task<AccountTransaction> RegisterTransactionAsync(AccountTransaction transaction);
+    Task<Guid> RegisterTransactionAsync(AccountTransaction transaction);
 }

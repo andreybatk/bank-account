@@ -5,7 +5,10 @@ namespace BankAccount.BusinessLogic.AccountTransactions.Mappers;
 
 public static class TransactionMapper
 {
-    public static TransactionResponse ToResponse(AccountTransaction transaction) =>
+    public static List<TransactionResponse> ToResponseList(IEnumerable<AccountTransaction> transactions) =>
+        transactions.Select(ToResponse).ToList();
+
+    private static TransactionResponse ToResponse(AccountTransaction transaction) =>
         new()
         {
             Id = transaction.Id,
@@ -17,7 +20,4 @@ public static class TransactionMapper
             Description = transaction.Description,
             CreatedAt = transaction.CreatedAt
         };
-
-    public static List<TransactionResponse> ToResponseList(IEnumerable<AccountTransaction> transactions) =>
-        transactions.Select(ToResponse).ToList();
 }

@@ -7,9 +7,9 @@ public class InMemoryTransactionRepository : ITransactionRepository
 {
     private readonly List<AccountTransaction> _transactions = [];
 
-    public Task<AccountTransaction> RegisterTransactionAsync(AccountTransaction transaction)
+    public Task<Guid> RegisterTransactionAsync(AccountTransaction transaction)
     {
         _transactions.Add(transaction);
-        return Task.FromResult(transaction);
+        return Task.FromResult(transaction.Id);
     }
 }
