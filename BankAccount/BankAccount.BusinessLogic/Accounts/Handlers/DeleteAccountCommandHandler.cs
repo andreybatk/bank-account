@@ -1,5 +1,6 @@
 ﻿using BankAccount.BusinessLogic.Abstractions.Messaging;
 using BankAccount.BusinessLogic.Accounts.Commands;
+using BankAccount.Domain.Exceptions;
 using BankAccount.Domain.Interfaces;
 
 namespace BankAccount.BusinessLogic.Accounts.Handlers;
@@ -15,6 +16,11 @@ public class DeleteAccountCommandHandler : ICommandHandler<DeleteAccountCommand,
 
     public async Task<Guid> Handle(DeleteAccountCommand request, CancellationToken cancellationToken)
     {
-        return await _accountRepository.DeleteAsync(request.AccountId);
+        var resultGuid = await _accountRepository.DeleteAsync(request.AccountId);
+
+        if (resultGuid is null)
+            throw new AccountNotFoundException(request.AccountId);
+
+        return resultGuid.Value;
     }
 }

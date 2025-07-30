@@ -49,6 +49,11 @@ public class UpdateAccountCommandHandler : ICommandHandler<UpdateAccountCommand,
             CloseDate = request.CloseDate
         };
 
-        return await _accountRepository.UpdateAsync(account);
+        var resultGuid = await _accountRepository.UpdateAsync(account);
+
+        if(resultGuid is null)
+            throw new AccountNotFoundException(account.Id);
+
+        return resultGuid.Value;
     }
 }

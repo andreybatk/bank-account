@@ -40,6 +40,9 @@ public class CreateTransactionCommandHandler : ICommandHandler<CreateTransaction
         {
             var account = await _accountRepository.GetByIdAsync(request.AccountId);
 
+            if(account is null)
+                throw new AccountNotFoundException(request.AccountId);
+
             if (account.Balance < request.Amount)
             {
                 errors.Add(nameof(request.Amount), [$"Недостаточно средств на счёте '{request.AccountId}' для списания {request.Amount} {request.Currency}."]);

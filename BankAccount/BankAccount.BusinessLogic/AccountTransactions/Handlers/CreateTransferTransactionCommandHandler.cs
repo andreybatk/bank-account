@@ -35,7 +35,14 @@ public class CreateTransferTransactionCommandHandler : ICommandHandler<CreateTra
             errors.Add(nameof(request.Currency), [$"Валюта '{request.Currency}' не поддерживается."]);
 
         var accountFrom = await _accountRepository.GetByIdAsync(request.AccountIdFrom);
+
+        if (accountFrom is null)
+            throw new AccountNotFoundException(request.AccountIdFrom);
+
         var accountTo = await _accountRepository.GetByIdAsync(request.AccountIdTo);
+
+        if (accountTo is null)
+            throw new AccountNotFoundException(request.AccountIdTo);
 
         if (accountFrom.Balance < request.Amount)
             errors.Add(nameof(request.Amount), [$"Недостаточно средств на счёте '{request.AccountIdFrom}' для перевода."]);

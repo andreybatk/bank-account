@@ -15,19 +15,19 @@ public interface IAccountRepository
     /// </summary>
     /// <param name="account"></param>
     /// <returns></returns>
-    Task<Guid> UpdateAsync(Account account);
+    Task<Guid?> UpdateAsync(Account account);
     /// <summary>
     /// Удалить счёт
     /// </summary>
     /// <param name="accountId"></param>
     /// <returns></returns>
-    Task<Guid> DeleteAsync(Guid accountId);
+    Task<Guid?> DeleteAsync(Guid accountId);
     /// <summary>
     /// Получить счет
     /// </summary>
     /// <param name="accountId"></param>
     /// <returns></returns>
-    Task<Account> GetByIdAsync(Guid accountId);
+    Task<Account?> GetByIdAsync(Guid accountId);
     /// <summary>
     /// Получить список счетов у клиента
     /// </summary>
@@ -40,7 +40,7 @@ public interface IAccountRepository
     /// <param name="ownerId"></param>
     /// <param name="accountId"></param>
     /// <returns></returns>
-    Task<Account> GetByOwnerIdAsync(Guid ownerId, Guid accountId);
+    Task<Account?> GetByOwnerIdAsync(Guid ownerId, Guid accountId);
     /// <summary>
     /// Проверить наличие счёта у клиента
     /// </summary>

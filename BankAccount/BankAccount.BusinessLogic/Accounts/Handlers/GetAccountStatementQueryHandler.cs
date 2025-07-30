@@ -30,6 +30,11 @@ public class GetAccountStatementQueryHandler
         if (errors.Count != 0)
             throw new ValidationException(errors);
 
-        return AccountMapper.ToStatementResponse(await _accountRepository.GetByOwnerIdAsync(request.OwnerId, request.AccountId));
+        var account = await _accountRepository.GetByOwnerIdAsync(request.OwnerId, request.AccountId);
+
+        if(account is null)
+            throw new AccountNotFoundException(request.AccountId);
+
+        return AccountMapper.ToStatementResponse(account);
     }
 }

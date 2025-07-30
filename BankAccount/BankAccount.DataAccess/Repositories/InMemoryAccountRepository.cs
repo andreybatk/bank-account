@@ -14,10 +14,12 @@ public class InMemoryAccountRepository : IAccountRepository
         return Task.FromResult(account.Id);
     }
 
-    public Task<Guid> UpdateAsync(Account account)
+    public Task<Guid?> UpdateAsync(Account account)
     {
-        var existing = _accounts.FirstOrDefault(a => a.Id == account.Id)
-                       ?? throw new AccountNotFoundException(account.Id);
+        var existing = _accounts.FirstOrDefault(a => a.Id == account.Id);
+
+        if (existing is null)
+            return Task.FromResult<Guid?>(null);
 
         existing.Type = account.Type;
         existing.Currency = account.Currency;
@@ -25,24 +27,28 @@ public class InMemoryAccountRepository : IAccountRepository
         existing.InterestRate = account.InterestRate;
         existing.CloseDate = account.CloseDate;
 
-        return Task.FromResult(existing.Id);
+        return Task.FromResult<Guid?>(existing.Id);
     }
 
-    public Task<Guid> DeleteAsync(Guid accountId)
+    public Task<Guid?> DeleteAsync(Guid accountId)
     {
-        var account = _accounts.FirstOrDefault(a => a.Id == accountId)
-                      ?? throw new AccountNotFoundException(accountId);
+        var account = _accounts.FirstOrDefault(a => a.Id == accountId);
+        
+        if(account is null)
+            return Task.FromResult<Guid?>(null);
 
         _accounts.Remove(account);
-        return Task.FromResult(accountId);
+        return Task.FromResult<Guid?>(accountId);
     }
 
-    public Task<Account> GetByIdAsync(Guid accountId)
+    public Task<Account?> GetByIdAsync(Guid accountId)
     {
-        var account = _accounts.FirstOrDefault(a => a.Id == accountId)
-                      ?? throw new AccountNotFoundException(accountId);
+        var account = _accounts.FirstOrDefault(a => a.Id == accountId);
 
-        return Task.FromResult(account);
+        if (account is null)
+            return Task.FromResult<Account?>(null);
+
+        return Task.FromResult<Account?>(account);
     }
 
     public Task<List<Account>> GetAllByOwnerIdAsync(Guid ownerId)
@@ -50,12 +56,14 @@ public class InMemoryAccountRepository : IAccountRepository
         return Task.FromResult(_accounts.Where(a => a.OwnerId == ownerId).ToList());
     }
 
-    public Task<Account> GetByOwnerIdAsync(Guid ownerId, Guid accountId)
+    public Task<Account?> GetByOwnerIdAsync(Guid ownerId, Guid accountId)
     {
-        var account = _accounts.FirstOrDefault(a => a.OwnerId == ownerId && a.Id == accountId)
-                      ?? throw new AccountNotFoundException(accountId);
+        var account = _accounts.FirstOrDefault(a => a.OwnerId == ownerId && a.Id == accountId);
+        
+        if (account is null)
+            return Task.FromResult<Account?>(null);
 
-        return Task.FromResult(account);
+        return Task.FromResult<Account?>(account);
     }
 
     public Task<bool> ExistsByOwnerIdAsync(Guid ownerId)
