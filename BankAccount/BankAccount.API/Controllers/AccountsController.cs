@@ -5,12 +5,14 @@ using BankAccount.Domain;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Authorization;
 
 namespace BankAccount.API.Controllers;
 
 /// <summary>
 /// Счета
 /// </summary>
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class AccountsController : ControllerBase

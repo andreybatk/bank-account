@@ -4,10 +4,14 @@ using BankAccount.BusinessLogic;
 using BankAccount.BusinessLogic.Services;
 using BankAccount.BusinessLogic.Validators;
 using BankAccount.DataAccess.Repositories;
+using BankAccount.Domain;
 using BankAccount.Domain.Interfaces;
 using FluentValidation;
+using Microsoft.OpenApi.Models;
 using System.Reflection;
-using BankAccount.Domain;
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 
 namespace BankAccount.API;
 
@@ -16,6 +20,11 @@ public class Program
     public static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
+
+        var authenticationConfiguration = new AuthenticationConfiguration();
+        builder.Configuration.Bind("Authentication", authenticationConfiguration);
+        builder.Services.AddSingleton(authenticationConfiguration);
+        builder.Services.AddHttpClient();
 
         builder.Services
             .AddControllers()
@@ -41,6 +50,17 @@ public class Program
                 c.IncludeXmlComments(xmlDomain);
 
             c.SchemaFilter<EnumSchemaFilter>();
+
+            c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+            {
+                Name = "Authorization",
+                Type = SecuritySchemeType.Http,
+                Scheme = "bearer",
+                BearerFormat = "JWT",
+                In = ParameterLocation.Header,
+                Description = "JWT token. Example: {your token}"
+            });
+            c.OperationFilter<AuthorizeCheckOperationFilter>();
         });
 
         builder.Services.AddMediatR(config =>
@@ -66,6 +86,26 @@ public class Program
             });
         });
 
+        builder.Services.AddAuthentication(options =>
+        {
+            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        })
+        .AddJwtBearer(options =>
+        {
+            options.Authority = authenticationConfiguration.URLKeycloak;
+            options.RequireHttpsMetadata = false;
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidIssuer = authenticationConfiguration.ValidIssuer,
+                ValidAudience = authenticationConfiguration.ValidAudience,
+                ValidateIssuer = true,
+                ValidateAudience = true
+            };
+        });
+
+        builder.Services.AddAuthorization();
+
         var app = builder.Build();
 
         if (app.Environment.IsDevelopment())
@@ -74,12 +114,13 @@ public class Program
             app.UseSwaggerUI();
         }
 
-        app.UseHttpsRedirection();
-
         app.UseCors(policy => policy
             .AllowAnyOrigin()
             .AllowAnyMethod()
             .AllowAnyHeader());
+
+        app.UseAuthentication();
+        app.UseAuthorization();
 
         app.UseMiddleware<ExceptionHandlingMiddleware>();
         app.MapControllers();

@@ -2,6 +2,7 @@
 using BankAccount.BusinessLogic.AccountTransactions.DTOs;
 using BankAccount.Domain;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BankAccount.API.Controllers;
@@ -9,8 +10,9 @@ namespace BankAccount.API.Controllers;
 /// <summary>
 /// Транзакции
 /// </summary>
-[Route("api/[controller]")]
+[Authorize]
 [ApiController]
+[Route("api/[controller]")]
 public class TransactionsController : ControllerBase
 {
     private readonly IMediator _mediator;
