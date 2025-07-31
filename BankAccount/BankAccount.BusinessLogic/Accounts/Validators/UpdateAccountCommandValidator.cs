@@ -21,8 +21,8 @@ public class UpdateAccountCommandValidator : AbstractValidator<UpdateAccountComm
             .NotEmpty().WithMessage("Необходимо указать валюту.")
             .Length(3).WithMessage("Валюта должна быть в формате ISO 4217.");
 
-        RuleFor(x => x.InitialBalance)
-            .GreaterThanOrEqualTo(0).WithMessage("Начальный баланс должен быть больше или равен нулю.");
+        RuleFor(x => x.Balance)
+            .GreaterThanOrEqualTo(0).WithMessage("Баланс должен быть больше или равен нулю.");
 
         When(x => x.Type is AccountType.Deposit or AccountType.Credit, () =>
         {

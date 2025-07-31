@@ -38,7 +38,7 @@ public class UpdateAccountCommandHandler : ICommandHandler<UpdateAccountCommand,
             OwnerId = request.OwnerId,
             Type = request.Type,
             Currency = request.Currency,
-            Balance = request.InitialBalance,
+            Balance = request.Balance,
             InterestRate = request.InterestRate,
             OpenDate = request.OpenDate,
             CloseDate = request.CloseDate

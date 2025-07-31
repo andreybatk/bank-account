@@ -1,8 +1,17 @@
 ﻿namespace BankAccount.Domain;
 
+/// <summary>
+/// Результат запроса
+/// </summary>
 public class MbResult<T>
 {
+    /// <summary>
+    /// Значение
+    /// </summary>
     public T? Value { get; set; }
+    /// <summary>
+    /// Ошибки
+    /// </summary>
     public List<string>? MbError { get; set; }
 
     public static MbResult<T> Success(T value) =>

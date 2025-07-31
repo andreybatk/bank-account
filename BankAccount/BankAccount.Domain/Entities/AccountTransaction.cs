@@ -9,7 +9,7 @@ public class AccountTransaction
     /// </summary>
     public Guid Id { get; set; }
     /// <summary>
-    /// Идентификатор аккаунта
+    /// Идентификатор счёта
     /// </summary>
     public Guid AccountId { get; set; }
     /// <summary>

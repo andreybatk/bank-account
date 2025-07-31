@@ -8,7 +8,7 @@ public sealed record UpdateAccountCommand(
     Guid OwnerId,
     AccountType Type,
     string Currency,
-    decimal InitialBalance,
+    decimal Balance,
     decimal? InterestRate,
     DateTime OpenDate,
     DateTime? CloseDate

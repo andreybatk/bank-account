@@ -5,7 +5,7 @@ namespace BankAccount.Domain.Entities;
 public class Account
 {
     /// <summary>
-    /// Идентификатор аккаунта
+    /// Идентификатор счёта
     /// </summary>
     public Guid Id { get; set; }
     /// <summary>

@@ -53,7 +53,7 @@ public sealed class ExceptionHandlingMiddleware
                 break;
 
             case Domain.Exceptions.BadRequestException badRequestException:
-                context.Response.StatusCode = StatusCodes.Status404NotFound;
+                context.Response.StatusCode = StatusCodes.Status400BadRequest;
                 response = new MbResult<object>
                 {
                     Value = null,
