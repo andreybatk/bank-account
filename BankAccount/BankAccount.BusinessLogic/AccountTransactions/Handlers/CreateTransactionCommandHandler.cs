@@ -22,31 +22,26 @@ public class CreateTransactionCommandHandler : ICommandHandler<CreateTransaction
 
     public async Task<Guid> Handle(CreateTransactionCommand request, CancellationToken cancellationToken)
     {
-        var errors = new Dictionary<string, string[]>();
+        var errors = new List<string>();
 
-        if(!await _accountRepository.ExistsByIdAsync(request.AccountId))
-            errors.Add(nameof(request.AccountId), [$"Указанный счёт '{request.AccountId}' не существует."]);
+        var account = await _accountRepository.GetByIdAsync(request.AccountId);
+
+        if (account is null)
+            errors.Add($"Указанный счёт '{request.AccountId}' не существует.");
 
         if (request.CounterpartyAccountId != null && !await _accountRepository.ExistsByIdAsync(request.CounterpartyAccountId.Value))
-            errors.Add(nameof(request.CounterpartyAccountId), [$"Указанный счёт '{request.CounterpartyAccountId}' не существует."]);
-
-        if (!await _currencyService.IsCurrencySupportedAsync(request.Currency))
-            errors.Add(nameof(request.Currency), [$"Валюта '{request.Currency}' не поддерживается."]);
+            errors.Add($"Указанный счёт '{request.CounterpartyAccountId}' не существует.");
 
         if (errors.Count != 0)
-            throw new ValidationException(errors);
+            throw new EntityNotFoundException(errors);
+
+        if (!await _currencyService.IsCurrencySupportedAsync(request.Currency))
+            throw new ValidationException($"Валюта '{request.Currency}' не поддерживается.");
 
         if (request.Type == TransactionType.Debit)
         {
-            var account = await _accountRepository.GetByIdAsync(request.AccountId);
-
-            if(account is null)
-                throw new AccountNotFoundException(request.AccountId);
-
-            if (account.Balance < request.Amount)
-            {
-                errors.Add(nameof(request.Amount), [$"Недостаточно средств на счёте '{request.AccountId}' для списания {request.Amount} {request.Currency}."]);
-            }
+            if (account!.Balance < request.Amount)
+                throw new BadRequestException($"Недостаточно средств на счёте '{request.AccountId}' для списания {request.Amount} {request.Currency}.");
         }
 
         var transaction = new AccountTransaction

@@ -16,11 +16,11 @@ public class DeleteAccountCommandHandler : ICommandHandler<DeleteAccountCommand,
 
     public async Task<Guid> Handle(DeleteAccountCommand request, CancellationToken cancellationToken)
     {
-        var resultGuid = await _accountRepository.DeleteAsync(request.AccountId);
+        var resultId = await _accountRepository.DeleteAsync(request.AccountId);
 
-        if (resultGuid is null)
-            throw new AccountNotFoundException(request.AccountId);
+        if (resultId is null)
+            throw new EntityNotFoundException("Счёт с таким AccountId не найден.");
 
-        return resultGuid.Value;
+        return resultId.Value;
     }
 }

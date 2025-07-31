@@ -21,18 +21,13 @@ public class CreateAccountCommandHandler : ICommandHandler<CreateAccountCommand,
 
     public async Task<Guid> Handle(CreateAccountCommand request, CancellationToken cancellationToken)
     {
-        var errors = new Dictionary<string, string[]>();
-
         var clientExists = await _clientVerificationService.ClientExistsAsync(request.OwnerId);
         if (!clientExists)
-            errors.Add(nameof(request.OwnerId), ["Клиент с таким OwnerId не найден."]);
+            throw new EntityNotFoundException("Клиент с таким OwnerId не найден.");
 
         var currencySupported = await _currencyService.IsCurrencySupportedAsync(request.Currency);
         if (!currencySupported)
-            errors.Add(nameof(request.Currency), [$"Валюта '{request.Currency}' не поддерживается."]);
-
-        if (errors.Count != 0)
-            throw new ValidationException(errors);
+            throw new ValidationException($"Валюта '{request.Currency}' не поддерживается.");
 
         var account = new Account
         {

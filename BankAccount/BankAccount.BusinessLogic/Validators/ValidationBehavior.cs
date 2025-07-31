@@ -24,13 +24,12 @@ public sealed class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<
         var errors = validationResults
             .Where(r => !r.IsValid)
             .SelectMany(r => r.Errors)
-            .Select(f => new { f.PropertyName, f.ErrorMessage })
+            .GroupBy(e => e.PropertyName)
+            .Select(g => g.First().ErrorMessage)
             .ToList();
 
         if (errors.Count != 0)
-            throw new Domain.Exceptions.ValidationException(errors
-                .GroupBy(e => e.PropertyName)
-                .ToDictionary(g => g.Key, g => g.Select(e => e.ErrorMessage).ToArray()));
+            throw new Domain.Exceptions.ValidationException(errors);
 
         return await next(cancellationToken);
     }

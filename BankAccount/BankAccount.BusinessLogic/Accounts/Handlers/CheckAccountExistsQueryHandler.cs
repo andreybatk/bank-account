@@ -18,14 +18,9 @@ public class CheckAccountExistsQueryHandler : IQueryHandler<CheckAccountExistsQu
 
     public async Task<bool> Handle(CheckAccountExistsQuery request, CancellationToken cancellationToken)
     {
-        var errors = new Dictionary<string, string[]>();
-
         var clientExists = await _clientVerificationService.ClientExistsAsync(request.OwnerId);
         if (!clientExists)
-            errors.Add(nameof(request.OwnerId), ["Клиент с таким OwnerId не найден."]);
-
-        if (errors.Count != 0)
-            throw new ValidationException(errors);
+            throw new EntityNotFoundException("Клиент с таким OwnerId не найден.");
 
         return await _accountRepository.ExistsByOwnerIdAsync(request.OwnerId);
     }

@@ -23,35 +23,29 @@ public class CreateTransferTransactionCommandHandler : ICommandHandler<CreateTra
 
     public async Task<TransferTransactionResponse> Handle(CreateTransferTransactionCommand request, CancellationToken cancellationToken)
     {
-        var errors = new Dictionary<string, string[]>();
-
-        if (!await _accountRepository.ExistsByIdAsync(request.AccountIdFrom))
-            errors.Add(nameof(request.AccountIdFrom), [$"Счёт отправителя '{request.AccountIdFrom}' не существует."]);
-
-        if (!await _accountRepository.ExistsByIdAsync(request.AccountIdTo))
-            errors.Add(nameof(request.AccountIdTo), [$"Счёт получателя '{request.AccountIdTo}' не существует."]);
-
-        if (!await _currencyService.IsCurrencySupportedAsync(request.Currency))
-            errors.Add(nameof(request.Currency), [$"Валюта '{request.Currency}' не поддерживается."]);
+        var errors = new List<string>();
 
         var accountFrom = await _accountRepository.GetByIdAsync(request.AccountIdFrom);
 
         if (accountFrom is null)
-            throw new AccountNotFoundException(request.AccountIdFrom);
+            errors.Add($"Указанный счёт '{request.AccountIdFrom}' не существует.");
 
         var accountTo = await _accountRepository.GetByIdAsync(request.AccountIdTo);
 
         if (accountTo is null)
-            throw new AccountNotFoundException(request.AccountIdTo);
-
-        if (accountFrom.Balance < request.Amount)
-            errors.Add(nameof(request.Amount), [$"Недостаточно средств на счёте '{request.AccountIdFrom}' для перевода."]);
-
-        if (accountFrom.Currency != accountTo.Currency)
-            errors.Add(nameof(request.Currency), [$"Не совпадают типы счетов '{accountFrom.Currency}' и '{accountTo.Currency}' для перевода."]);
+            errors.Add($"Указанный счёт '{request.AccountIdTo}' не существует.");
 
         if (errors.Count != 0)
-            throw new ValidationException(errors);
+            throw new EntityNotFoundException(errors);
+
+        if (!await _currencyService.IsCurrencySupportedAsync(request.Currency))
+            throw new ValidationException($"Валюта '{request.Currency}' не поддерживается.");
+
+        if (accountFrom!.Balance < request.Amount)
+            throw new BadRequestException($"Недостаточно средств на счёте '{request.AccountIdFrom}' для списания {request.Amount} {request.Currency}.");
+
+        if (accountFrom.Currency != accountTo!.Currency)
+            throw new BadRequestException($"Не совпадают типы счетов '{accountFrom.Currency}' и '{accountTo.Currency}' для перевода.");
 
         var debitTransaction = new AccountTransaction
         {

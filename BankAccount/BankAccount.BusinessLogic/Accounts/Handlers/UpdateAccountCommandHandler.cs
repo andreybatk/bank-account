@@ -24,18 +24,13 @@ public class UpdateAccountCommandHandler : ICommandHandler<UpdateAccountCommand,
 
     public async Task<Guid> Handle(UpdateAccountCommand request, CancellationToken cancellationToken)
     {
-        var errors = new Dictionary<string, string[]>();
-
         var clientExists = await _clientVerificationService.ClientExistsAsync(request.OwnerId);
         if (!clientExists)
-            errors.Add(nameof(request.OwnerId), ["Клиент с таким OwnerId не найден."]);
+            throw new EntityNotFoundException("Клиент с таким OwnerId не найден.");
 
         var currencySupported = await _currencyService.IsCurrencySupportedAsync(request.Currency);
         if (!currencySupported)
-            errors.Add(nameof(request.Currency), [$"Валюта '{request.Currency}' не поддерживается."]);
-
-        if (errors.Count != 0)
-            throw new ValidationException(errors);
+            throw new ValidationException($"Валюта '{request.Currency}' не поддерживается.");
 
         var account = new Account
         {
@@ -49,11 +44,11 @@ public class UpdateAccountCommandHandler : ICommandHandler<UpdateAccountCommand,
             CloseDate = request.CloseDate
         };
 
-        var resultGuid = await _accountRepository.UpdateAsync(account);
+        var resultId = await _accountRepository.UpdateAsync(account);
 
-        if(resultGuid is null)
-            throw new AccountNotFoundException(account.Id);
+        if(resultId is null)
+            throw new EntityNotFoundException("Счёт с таким AccountId не найден.");
 
-        return resultGuid.Value;
+        return resultId.Value;
     }
 }
