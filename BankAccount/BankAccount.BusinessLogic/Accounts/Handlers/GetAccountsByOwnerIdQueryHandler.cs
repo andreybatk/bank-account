@@ -7,23 +7,17 @@ using BankAccount.Domain.Interfaces;
 
 namespace BankAccount.BusinessLogic.Accounts.Handlers;
 
-public class GetAccountsByOwnerIdQueryHandler : IQueryHandler<GetAccountsByOwnerIdQuery, List<AccountResponse>>
+public class GetAccountsByOwnerIdQueryHandler(
+    IAccountRepository accountRepository,
+    IClientVerificationService clientVerificationService)
+    : IQueryHandler<GetAccountsByOwnerIdQuery, List<AccountResponse>>
 {
-    private readonly IAccountRepository _accountRepository;
-    private readonly IClientVerificationService _clientVerificationService;
-
-    public GetAccountsByOwnerIdQueryHandler(IAccountRepository accountRepository, IClientVerificationService clientVerificationService)
-    {
-        _accountRepository = accountRepository;
-        _clientVerificationService = clientVerificationService;
-    }
-
     public async Task<List<AccountResponse>> Handle(GetAccountsByOwnerIdQuery request, CancellationToken cancellationToken)
     {
-        var clientExists = await _clientVerificationService.ClientExistsAsync(request.OwnerId);
+        var clientExists = await clientVerificationService.ClientExistsAsync(request.OwnerId);
         if (!clientExists)
             throw new EntityNotFoundException("Клиент с таким OwnerId не найден.");
 
-        return AccountMapper.ToResponseList(await _accountRepository.GetAllByOwnerIdAsync(request.OwnerId));
+        return AccountMapper.ToResponseList(await accountRepository.GetAllByOwnerIdAsync(request.OwnerId));
     }
 }

@@ -1,5 +1,4 @@
 ﻿using BankAccount.Domain.Entities;
-using BankAccount.Domain.Exceptions;
 using BankAccount.Domain.Interfaces;
 
 namespace BankAccount.DataAccess.Repositories;
@@ -45,10 +44,7 @@ public class InMemoryAccountRepository : IAccountRepository
     {
         var account = _accounts.FirstOrDefault(a => a.Id == accountId);
 
-        if (account is null)
-            return Task.FromResult<Account?>(null);
-
-        return Task.FromResult<Account?>(account);
+        return account is null ? Task.FromResult<Account?>(null) : Task.FromResult<Account?>(account);
     }
 
     public Task<List<Account>> GetAllByOwnerIdAsync(Guid ownerId)
@@ -60,10 +56,7 @@ public class InMemoryAccountRepository : IAccountRepository
     {
         var account = _accounts.FirstOrDefault(a => a.OwnerId == ownerId && a.Id == accountId);
         
-        if (account is null)
-            return Task.FromResult<Account?>(null);
-
-        return Task.FromResult<Account?>(account);
+        return account is null ? Task.FromResult<Account?>(null) : Task.FromResult<Account?>(account);
     }
 
     public Task<bool> ExistsByOwnerIdAsync(Guid ownerId)

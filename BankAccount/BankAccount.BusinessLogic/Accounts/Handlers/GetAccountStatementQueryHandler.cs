@@ -7,25 +7,18 @@ using BankAccount.Domain.Interfaces;
 
 namespace BankAccount.BusinessLogic.Accounts.Handlers;
 
-public class GetAccountStatementQueryHandler
+public class GetAccountStatementQueryHandler(
+    IAccountRepository accountRepository,
+    IClientVerificationService clientVerificationService)
     : IQueryHandler<GetAccountStatementQuery, AccountStatementResponse>
 {
-    private readonly IAccountRepository _accountRepository;
-    private readonly IClientVerificationService _clientVerificationService;
-
-    public GetAccountStatementQueryHandler(IAccountRepository accountRepository, IClientVerificationService clientVerificationService)
-    {
-        _accountRepository = accountRepository;
-        _clientVerificationService = clientVerificationService;
-    }
-
     public async Task<AccountStatementResponse> Handle(GetAccountStatementQuery request, CancellationToken cancellationToken)
     {
-        var clientExists = await _clientVerificationService.ClientExistsAsync(request.OwnerId);
+        var clientExists = await clientVerificationService.ClientExistsAsync(request.OwnerId);
         if (!clientExists)
             throw new EntityNotFoundException("Клиент с таким OwnerId не найден.");
 
-        var account = await _accountRepository.GetByOwnerIdAsync(request.OwnerId, request.AccountId);
+        var account = await accountRepository.GetByOwnerIdAsync(request.OwnerId, request.AccountId);
 
         if(account is null)
             throw new EntityNotFoundException("Счёт с таким AccountId не найден.");

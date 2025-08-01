@@ -13,18 +13,14 @@ namespace BankAccount.API.Controllers;
 [Authorize]
 [ApiController]
 [Route("api/[controller]")]
-public class TransactionsController : ControllerBase
+public class TransactionsController(IMediator mediator) : ControllerBase
 {
-    private readonly IMediator _mediator;
-
-    public TransactionsController(IMediator mediator)
-    {
-        _mediator = mediator;
-    }
-
     /// <summary>
     /// Создать транзакцию
     /// </summary>
+    /// <param name="request">Тело запроса</param>
+    /// <param name="token">Cancellation Token</param>
+    /// <returns></returns>
     [HttpPost]
     [ProducesResponseType(typeof(MbResult<Guid>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(MbResult<object>), StatusCodes.Status400BadRequest)]
@@ -39,7 +35,7 @@ public class TransactionsController : ControllerBase
             request.Description,
             request.CreatedAt);
 
-        var transactionId = await _mediator.Send(command, token);
+        var transactionId = await mediator.Send(command, token);
 
         return Ok(MbResult<Guid>.Success(transactionId));
     }
@@ -47,6 +43,9 @@ public class TransactionsController : ControllerBase
     /// <summary>
     /// Создать транзакции по переводу средств
     /// </summary>
+    /// <param name="request">Тело запроса</param>
+    /// <param name="token">Cancellation Token</param>
+    /// <returns></returns>
     [HttpPost("transfers")]
     [ProducesResponseType(typeof(MbResult<TransferTransactionResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(MbResult<object>), StatusCodes.Status400BadRequest)]
@@ -60,7 +59,7 @@ public class TransactionsController : ControllerBase
             request.Description,
             request.CreatedAt);
 
-        var transactionIds = await _mediator.Send(command, token);
+        var transactionIds = await mediator.Send(command, token);
 
         return Ok(MbResult<TransferTransactionResponse>.Success(transactionIds));
     }

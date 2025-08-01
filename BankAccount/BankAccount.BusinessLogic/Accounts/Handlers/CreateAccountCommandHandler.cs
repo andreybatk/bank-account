@@ -6,26 +6,19 @@ using BankAccount.Domain.Interfaces;
 
 namespace BankAccount.BusinessLogic.Accounts.Handlers;
 
-public class CreateAccountCommandHandler : ICommandHandler<CreateAccountCommand, Guid>
+public class CreateAccountCommandHandler(
+    IAccountRepository accountRepository,
+    IClientVerificationService clientVerificationService,
+    ICurrencyService currencyService)
+    : ICommandHandler<CreateAccountCommand, Guid>
 {
-    private readonly IAccountRepository _accountRepository;
-    private readonly IClientVerificationService _clientVerificationService;
-    private readonly ICurrencyService _currencyService;
-
-    public CreateAccountCommandHandler(IAccountRepository accountRepository, IClientVerificationService clientVerificationService, ICurrencyService currencyService)
-    {
-        _accountRepository = accountRepository;
-        _clientVerificationService = clientVerificationService;
-        _currencyService = currencyService;
-    }
-
     public async Task<Guid> Handle(CreateAccountCommand request, CancellationToken cancellationToken)
     {
-        var clientExists = await _clientVerificationService.ClientExistsAsync(request.OwnerId);
+        var clientExists = await clientVerificationService.ClientExistsAsync(request.OwnerId);
         if (!clientExists)
             throw new EntityNotFoundException("Клиент с таким OwnerId не найден.");
 
-        var currencySupported = await _currencyService.IsCurrencySupportedAsync(request.Currency);
+        var currencySupported = await currencyService.IsCurrencySupportedAsync(request.Currency);
         if (!currencySupported)
             throw new ValidationException($"Валюта '{request.Currency}' не поддерживается.");
 
@@ -41,6 +34,6 @@ public class CreateAccountCommandHandler : ICommandHandler<CreateAccountCommand,
             CloseDate = request.CloseDate
         };
 
-        return await _accountRepository.CreateAsync(account);
+        return await accountRepository.CreateAsync(account);
     }
 }

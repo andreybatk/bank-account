@@ -9,17 +9,9 @@ namespace BankAccount.API.Controllers;
 /// </summary>
 [Route("api/[controller]")]
 [ApiController]
-public class AuthTestController : ControllerBase
+public class AuthTestController(IHttpClientFactory httpClientFactory, AuthenticationConfiguration configuration)
+    : ControllerBase
 {
-    private readonly IHttpClientFactory _httpClientFactory;
-    private readonly AuthenticationConfiguration _configuration;
-
-    public AuthTestController(IHttpClientFactory httpClientFactory, AuthenticationConfiguration configuration)
-    {
-        _httpClientFactory = httpClientFactory;
-        _configuration = configuration;
-    }
-
     /// <summary>
     /// Получить тестовый токен доступа
     /// </summary>
@@ -29,14 +21,14 @@ public class AuthTestController : ControllerBase
     [HttpGet("token")]
     public async Task<IActionResult> GetAccessToken()
     {
-        var client = _httpClientFactory.CreateClient();
+        var client = httpClientFactory.CreateClient();
 
-        var url = $"{_configuration.URLKeycloak}/protocol/openid-connect/token";
+        var url = $"{configuration.UrlKeycloak}/protocol/openid-connect/token";
 
         var formData = new Dictionary<string, string>
         {
-            { "client_id", _configuration.ValidAudience },
-            { "client_secret", _configuration.SecretKey },
+            { "client_id", configuration.ValidAudience },
+            { "client_secret", configuration.SecretKey },
             { "grant_type", "password" },
             { "username", "test-user" },
             { "password", "test-user" }

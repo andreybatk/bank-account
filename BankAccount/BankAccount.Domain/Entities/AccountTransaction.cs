@@ -1,4 +1,5 @@
-﻿using BankAccount.Domain.Enums;
+﻿// ReSharper disable PropertyCanBeMadeInitOnly.Global Сущность, должна иметь возможность полностью измениться
+using BankAccount.Domain.Enums;
 
 namespace BankAccount.Domain.Entities;
 

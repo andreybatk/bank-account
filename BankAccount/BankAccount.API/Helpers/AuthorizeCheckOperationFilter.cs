@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿// ReSharper disable ClassNeverInstantiated.Global Класс инициализируется через рефлексию в Program
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
@@ -21,7 +22,7 @@ public class AuthorizeCheckOperationFilter : IOperationFilter
         {
             operation.Security = new List<OpenApiSecurityRequirement>
             {
-                new OpenApiSecurityRequirement
+                new()
                 {
                     [ new OpenApiSecurityScheme
                         {

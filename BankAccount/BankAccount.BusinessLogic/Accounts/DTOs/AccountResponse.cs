@@ -1,4 +1,5 @@
-﻿using BankAccount.Domain.Enums;
+﻿// ReSharper disable UnusedAutoPropertyAccessor.Global Используются для сериализации ответа API
+using BankAccount.Domain.Enums;
 
 namespace BankAccount.BusinessLogic.Accounts.DTOs;
 

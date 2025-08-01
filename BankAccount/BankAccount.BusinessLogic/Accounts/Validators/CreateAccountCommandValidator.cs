@@ -1,4 +1,5 @@
-﻿using BankAccount.BusinessLogic.Accounts.Commands;
+﻿// ReSharper disable UnusedType.Global Используется в контейнере зависимостей
+using BankAccount.BusinessLogic.Accounts.Commands;
 using BankAccount.Domain.Enums;
 using FluentValidation;
 

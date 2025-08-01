@@ -8,29 +8,22 @@ using BankAccount.Domain.Interfaces;
 
 namespace BankAccount.BusinessLogic.AccountTransactions.Handlers;
 
-public class CreateTransferTransactionCommandHandler : ICommandHandler<CreateTransferTransactionCommand, TransferTransactionResponse>
+public class CreateTransferTransactionCommandHandler(
+    ITransactionRepository transactionRepository,
+    IAccountRepository accountRepository,
+    ICurrencyService currencyService)
+    : ICommandHandler<CreateTransferTransactionCommand, TransferTransactionResponse>
 {
-    private readonly ITransactionRepository _transactionRepository;
-    private readonly IAccountRepository _accountRepository;
-    private readonly ICurrencyService _currencyService;
-
-    public CreateTransferTransactionCommandHandler(ITransactionRepository transactionRepository, IAccountRepository accountRepository, ICurrencyService currencyService)
-    {
-        _transactionRepository = transactionRepository;
-        _accountRepository = accountRepository;
-        _currencyService = currencyService;
-    }
-
     public async Task<TransferTransactionResponse> Handle(CreateTransferTransactionCommand request, CancellationToken cancellationToken)
     {
         var errors = new List<string>();
 
-        var accountFrom = await _accountRepository.GetByIdAsync(request.AccountIdFrom);
+        var accountFrom = await accountRepository.GetByIdAsync(request.AccountIdFrom);
 
         if (accountFrom is null)
             errors.Add($"Указанный счёт '{request.AccountIdFrom}' не существует.");
 
-        var accountTo = await _accountRepository.GetByIdAsync(request.AccountIdTo);
+        var accountTo = await accountRepository.GetByIdAsync(request.AccountIdTo);
 
         if (accountTo is null)
             errors.Add($"Указанный счёт '{request.AccountIdTo}' не существует.");
@@ -38,7 +31,7 @@ public class CreateTransferTransactionCommandHandler : ICommandHandler<CreateTra
         if (errors.Count != 0)
             throw new EntityNotFoundException(errors);
 
-        if (!await _currencyService.IsCurrencySupportedAsync(request.Currency))
+        if (!await currencyService.IsCurrencySupportedAsync(request.Currency))
             throw new ValidationException($"Валюта '{request.Currency}' не поддерживается.");
 
         if (accountFrom!.Balance < request.Amount)
@@ -72,8 +65,8 @@ public class CreateTransferTransactionCommandHandler : ICommandHandler<CreateTra
         };
 
         
-        await _transactionRepository.RegisterTransactionAsync(debitTransaction);
-        await _transactionRepository.RegisterTransactionAsync(creditTransaction);
+        await transactionRepository.RegisterTransactionAsync(debitTransaction);
+        await transactionRepository.RegisterTransactionAsync(creditTransaction);
 
         return new TransferTransactionResponse { DebitTransactionId = debitTransaction.Id, CreditTransactionId = creditTransaction.Id };
     }

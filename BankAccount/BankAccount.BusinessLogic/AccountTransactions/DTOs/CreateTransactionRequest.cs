@@ -1,4 +1,6 @@
-﻿using BankAccount.Domain.Enums;
+﻿// ReSharper disable UnusedAutoPropertyAccessor.Global Используется для десериализации JSON из запроса
+// ReSharper disable AutoPropertyCanBeMadeGetOnly.Global Используется для десериализации JSON из запроса
+using BankAccount.Domain.Enums;
 
 namespace BankAccount.BusinessLogic.AccountTransactions.DTOs;
 

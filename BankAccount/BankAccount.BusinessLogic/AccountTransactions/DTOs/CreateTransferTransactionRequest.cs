@@ -1,4 +1,6 @@
-﻿namespace BankAccount.BusinessLogic.AccountTransactions.DTOs;
+﻿// ReSharper disable UnusedAutoPropertyAccessor.Global Используется для десериализации JSON из запроса
+// ReSharper disable AutoPropertyCanBeMadeGetOnly.Global Используется для десериализации JSON из запроса
+namespace BankAccount.BusinessLogic.AccountTransactions.DTOs;
 
 /// <summary>
 /// Запрос на перевод средств

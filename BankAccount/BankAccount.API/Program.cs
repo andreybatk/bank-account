@@ -7,15 +7,14 @@ using BankAccount.DataAccess.Repositories;
 using BankAccount.Domain;
 using BankAccount.Domain.Interfaces;
 using FluentValidation;
-using Microsoft.OpenApi.Models;
-using System.Reflection;
-using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using System.Reflection;
 
 namespace BankAccount.API;
 
-public class Program
+public static class Program
 {
     public static void Main(string[] args)
     {
@@ -93,7 +92,7 @@ public class Program
         })
         .AddJwtBearer(options =>
         {
-            options.Authority = authenticationConfiguration.URLKeycloak;
+            options.Authority = authenticationConfiguration.UrlKeycloak;
             options.RequireHttpsMetadata = false;
             options.TokenValidationParameters = new TokenValidationParameters
             {

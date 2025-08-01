@@ -8,15 +8,21 @@ public class MbResult<T>
     /// <summary>
     /// Значение
     /// </summary>
-    public T? Value { get; set; }
+    public T? Value { get; init; }
     /// <summary>
     /// Ошибки
     /// </summary>
-    public List<string>? MbError { get; set; }
+    public List<string>? MbError { get; init; }
 
+    /// <summary>
+    /// Успешный результат
+    /// </summary>
     public static MbResult<T> Success(T value) =>
-        new MbResult<T> { Value = value, MbError = null };
+        new() { Value = value, MbError = null };
 
+    /// <summary>
+    /// Неуспешный результат
+    /// </summary>
     public static MbResult<T> Fail(List<string> errors) =>
-        new MbResult<T> { Value = default, MbError = errors };
+        new() { Value = default, MbError = errors };
 }

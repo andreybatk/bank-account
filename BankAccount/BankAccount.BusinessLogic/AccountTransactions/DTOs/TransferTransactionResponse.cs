@@ -1,4 +1,5 @@
-﻿namespace BankAccount.BusinessLogic.AccountTransactions.DTOs;
+﻿// ReSharper disable UnusedAutoPropertyAccessor.Global Используются для сериализации ответа API
+namespace BankAccount.BusinessLogic.AccountTransactions.DTOs;
 
 /// <summary>
 /// Результат перевода средств
