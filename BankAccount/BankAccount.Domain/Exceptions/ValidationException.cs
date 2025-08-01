@@ -2,11 +2,17 @@
 
 public class ValidationException : Exception
 {
-    public IReadOnlyDictionary<string, string[]> Errors { get; }
+    public List<string> Errors { get; }
 
-    public ValidationException(IReadOnlyDictionary<string, string[]> errors)
-        : base("Validation failed")
+    public ValidationException(List<string> errors)
+        : base("One or more validation errors occurred.")
     {
         Errors = errors;
+    }
+
+    public ValidationException(string error)
+        : base("Validation error occurred.")
+    {
+        Errors = [error];
     }
 }

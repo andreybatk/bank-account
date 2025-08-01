@@ -1,24 +1,29 @@
 ﻿using BankAccount.BusinessLogic.AccountTransactions.Commands;
 using BankAccount.BusinessLogic.AccountTransactions.DTOs;
+using BankAccount.Domain;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BankAccount.API.Controllers;
 
-[Route("api/[controller]")]
+/// <summary>
+/// Транзакции
+/// </summary>
+[Authorize]
 [ApiController]
-public class TransactionsController : ControllerBase
+[Route("api/[controller]")]
+public class TransactionsController(IMediator mediator) : ControllerBase
 {
-    private readonly IMediator _mediator;
-
-    public TransactionsController(IMediator mediator)
-    {
-        _mediator = mediator;
-    }
-
+    /// <summary>
+    /// Создать транзакцию
+    /// </summary>
+    /// <param name="request">Тело запроса</param>
+    /// <param name="token">Cancellation Token</param>
+    /// <returns></returns>
     [HttpPost]
-    [ProducesResponseType(typeof(Guid), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(MbResult<Guid>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(MbResult<object>), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateTransaction([FromBody] CreateTransactionRequest request, CancellationToken token)
     {
         var command = new CreateTransactionCommand(
@@ -30,14 +35,20 @@ public class TransactionsController : ControllerBase
             request.Description,
             request.CreatedAt);
 
-        var transactionId = await _mediator.Send(command, token);
+        var transactionId = await mediator.Send(command, token);
 
-        return Ok(transactionId);
+        return Ok(MbResult<Guid>.Success(transactionId));
     }
 
+    /// <summary>
+    /// Создать транзакции по переводу средств
+    /// </summary>
+    /// <param name="request">Тело запроса</param>
+    /// <param name="token">Cancellation Token</param>
+    /// <returns></returns>
     [HttpPost("transfers")]
-    [ProducesResponseType(typeof(TransferTransactionResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(MbResult<TransferTransactionResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(MbResult<object>), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateTransferTransaction([FromBody] CreateTransferTransactionRequest request, CancellationToken token)
     {
         var command = new CreateTransferTransactionCommand(
@@ -48,8 +59,8 @@ public class TransactionsController : ControllerBase
             request.Description,
             request.CreatedAt);
 
-        var transactionIds = await _mediator.Send(command, token);
+        var transactionIds = await mediator.Send(command, token);
 
-        return Ok(transactionIds);
+        return Ok(MbResult<TransferTransactionResponse>.Success(transactionIds));
     }
 }
