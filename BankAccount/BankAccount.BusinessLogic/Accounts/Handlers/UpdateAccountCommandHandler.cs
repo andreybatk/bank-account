@@ -16,11 +16,11 @@ public class UpdateAccountCommandHandler(
     {
         var clientExists = await clientVerificationService.ClientExistsAsync(request.OwnerId);
         if (!clientExists)
-            throw new EntityNotFoundException("Клиент с таким OwnerId не найден.");
+            throw new EntityNotFoundException("Клиент не найден.");
 
         var currencySupported = await currencyService.IsCurrencySupportedAsync(request.Currency);
         if (!currencySupported)
-            throw new ValidationException($"Валюта '{request.Currency}' не поддерживается.");
+            throw new ValidationException("Валюта не поддерживается.");
 
         var account = new Account
         {

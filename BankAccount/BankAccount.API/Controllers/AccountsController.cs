@@ -20,23 +20,14 @@ public class AccountsController(IMediator mediator) : ControllerBase
     /// <summary>
     /// Создать счет
     /// </summary>
-    /// <param name="request">Тело запроса</param>
+    /// <param name="command">Тело запроса</param>
     /// <param name="token">Cancellation Token</param>
     /// <returns></returns>
     [HttpPost]
     [ProducesResponseType(typeof(MbResult<Guid>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(MbResult<object>), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> CreateAccount([FromBody] CreateAccountRequest request, CancellationToken token)
+    public async Task<IActionResult> CreateAccount([FromBody] CreateAccountCommand command, CancellationToken token)
     {
-        var command = new CreateAccountCommand(
-            request.OwnerId,
-            request.Type,
-            request.Currency,
-            request.InitialBalance,
-            request.InterestRate,
-            request.OpenDate,
-            request.CloseDate);
-
         var accountId = await mediator.Send(command, token);
 
         return Ok(MbResult<Guid>.Success(accountId));

@@ -4,13 +4,15 @@ using BankAccount.Domain.Entities;
 using BankAccount.Domain.Enums;
 using BankAccount.Domain.Exceptions;
 using BankAccount.Domain.Interfaces;
+using Microsoft.Extensions.Logging;
 
 namespace BankAccount.BusinessLogic.AccountTransactions.Handlers;
 
 public class CreateTransactionCommandHandler(
     ITransactionRepository transactionRepository,
     ICurrencyService currencyService,
-    IAccountRepository accountRepository)
+    IAccountRepository accountRepository,
+    ILogger<CreateTransactionCommandHandler> logger)
     : ICommandHandler<CreateTransactionCommand, Guid>
 {
     public async Task<Guid> Handle(CreateTransactionCommand request, CancellationToken cancellationToken)
@@ -20,21 +22,33 @@ public class CreateTransactionCommandHandler(
         var account = await accountRepository.GetByIdAsync(request.AccountId);
 
         if (account is null)
-            errors.Add($"Указанный счёт '{request.AccountId}' не существует.");
+        {
+            errors.Add("Указанный счёт не существует.");
+            logger.LogError("Указанный счёт '{accountId}' не существует.", request.AccountId);
+        }
 
         if (request.CounterpartyAccountId != null && !await accountRepository.ExistsByIdAsync(request.CounterpartyAccountId.Value))
-            errors.Add($"Указанный счёт '{request.CounterpartyAccountId}' не существует.");
+        {
+            errors.Add("Указанный счёт контрагента не существует.");
+            logger.LogError("Указанный счёт контрагента '{counterpartyAccountId}' не существует.", request.CounterpartyAccountId);
+        }
 
         if (errors.Count != 0)
             throw new EntityNotFoundException(errors);
 
         if (!await currencyService.IsCurrencySupportedAsync(request.Currency))
-            throw new ValidationException($"Валюта '{request.Currency}' не поддерживается.");
+        {
+            logger.LogError("Валюта '{currency}' не поддерживается.", request.Currency);
+            throw new ValidationException("Валюта не поддерживается.");
+        }
 
-        if (request.Type == TransactionType.Debit)
+        if (request.Type == ETransactionType.Credit)
         {
             if (account!.Balance < request.Amount)
-                throw new BadRequestException($"Недостаточно средств на счёте '{request.AccountId}' для списания {request.Amount} {request.Currency}.");
+            {
+                logger.LogError("Недостаточно средств на счёте '{accountId}' для списания {amount} {currency}.", request.AccountId, request.Amount, request.Currency);
+                throw new BadRequestException("Недостаточно средств для списания.");
+            }
         }
 
         var transaction = new AccountTransaction
@@ -49,6 +63,16 @@ public class CreateTransactionCommandHandler(
             CreatedAt = request.CreatedAt
         };
 
-        return await transactionRepository.RegisterTransactionAsync(transaction);
+        var transactionId = await transactionRepository.RegisterTransactionAsync(transaction);
+
+        account!.Balance = transaction.Type == ETransactionType.Credit
+            ? account.Balance -= transaction.Amount
+            : account.Balance += transaction.Amount;
+
+        account.Transactions.Add(transaction);
+
+        await accountRepository.UpdateAsync(account);
+
+        return transactionId;
     }
 }

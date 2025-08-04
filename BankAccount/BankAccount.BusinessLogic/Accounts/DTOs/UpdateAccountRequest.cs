@@ -16,7 +16,7 @@ public class UpdateAccountRequest
     /// <summary>
     /// Тип аккаунта
     /// </summary>
-    public AccountType Type { get; init; }
+    public EAccountType Type { get; init; }
     /// <summary>
     /// Валюта (ISO4217)
     /// </summary>

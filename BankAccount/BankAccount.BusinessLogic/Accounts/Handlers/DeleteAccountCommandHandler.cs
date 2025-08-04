@@ -13,7 +13,7 @@ public class DeleteAccountCommandHandler(IAccountRepository accountRepository)
         var resultId = await accountRepository.DeleteAsync(request.AccountId);
 
         if (resultId is null)
-            throw new EntityNotFoundException("Счёт с таким AccountId не найден.");
+            throw new EntityNotFoundException("Счёт не найден.");
 
         return resultId.Value;
     }

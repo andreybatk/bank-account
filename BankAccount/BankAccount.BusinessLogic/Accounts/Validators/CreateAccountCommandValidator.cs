@@ -22,14 +22,14 @@ public class CreateAccountCommandValidator : AbstractValidator<CreateAccountComm
         RuleFor(x => x.InitialBalance)
             .GreaterThanOrEqualTo(0).WithMessage("Начальный баланс должен быть больше или равен нулю.");
 
-        When(x => x.Type is AccountType.Deposit or AccountType.Credit, () =>
+        When(x => x.Type is EAccountType.Deposit or EAccountType.Credit, () =>
         {
             RuleFor(x => x.InterestRate)
                 .NotNull().WithMessage("Для счетов типа Deposit и Credit необходимо указать процентную ставку.")
                 .GreaterThanOrEqualTo(0).WithMessage("Процентная ставка должна быть больше или равна нулю.");
         });
 
-        When(x => x.Type == AccountType.Checking, () =>
+        When(x => x.Type == EAccountType.Checking, () =>
         {
             RuleFor(x => x.InterestRate)
                 .Null().WithMessage("Для счетов типа Checking процентная ставка не должна быть указана.");

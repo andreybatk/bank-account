@@ -16,12 +16,12 @@ public class GetAccountStatementQueryHandler(
     {
         var clientExists = await clientVerificationService.ClientExistsAsync(request.OwnerId);
         if (!clientExists)
-            throw new EntityNotFoundException("Клиент с таким OwnerId не найден.");
+            throw new EntityNotFoundException("Клиент не найден.");
 
         var account = await accountRepository.GetByOwnerIdAsync(request.OwnerId, request.AccountId);
 
         if(account is null)
-            throw new EntityNotFoundException("Счёт с таким AccountId не найден.");
+            throw new EntityNotFoundException("Счёт не найден.");
 
         return AccountMapper.ToStatementResponse(account);
     }

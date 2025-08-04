@@ -6,7 +6,7 @@ namespace BankAccount.BusinessLogic.Accounts.Commands;
 public sealed record UpdateAccountCommand(
     Guid AccountId,
     Guid OwnerId,
-    AccountType Type,
+    EAccountType Type,
     string Currency,
     decimal Balance,
     decimal? InterestRate,

@@ -3,7 +3,7 @@
 /// <summary>
 /// Тип счёта
 /// </summary>
-public enum AccountType
+public enum EAccountType
 {
     /// <summary>
     /// Расчетный 

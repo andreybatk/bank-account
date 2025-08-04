@@ -14,7 +14,7 @@ public class CheckAccountExistsQueryHandler(
     {
         var clientExists = await clientVerificationService.ClientExistsAsync(request.OwnerId);
         if (!clientExists)
-            throw new EntityNotFoundException("Клиент с таким OwnerId не найден.");
+            throw new EntityNotFoundException("Клиент не найден.");
 
         return await accountRepository.ExistsByOwnerIdAsync(request.OwnerId);
     }

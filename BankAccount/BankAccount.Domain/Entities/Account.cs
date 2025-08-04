@@ -16,7 +16,7 @@ public class Account
     /// <summary>
     /// Тип аккаунта
     /// </summary>
-    public AccountType Type { get; set; }
+    public EAccountType Type { get; set; }
     /// <summary>
     /// Валюта (ISO4217)
     /// </summary>

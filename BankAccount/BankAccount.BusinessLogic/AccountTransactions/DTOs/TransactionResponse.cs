@@ -31,7 +31,7 @@ public class TransactionResponse
     /// <summary>
     /// Тип транзакции
     /// </summary>
-    public TransactionType Type { get; set; }
+    public ETransactionType Type { get; set; }
     /// <summary>
     /// Описание транзакции
     /// </summary>

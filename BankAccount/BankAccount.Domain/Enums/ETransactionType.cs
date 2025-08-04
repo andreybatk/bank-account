@@ -3,7 +3,7 @@
 /// <summary>
 /// Тип транзакции
 /// </summary>
-public enum TransactionType
+public enum ETransactionType
 {
     /// <summary>
     /// Списание

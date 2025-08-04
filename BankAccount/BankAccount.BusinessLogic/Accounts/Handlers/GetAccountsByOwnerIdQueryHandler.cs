@@ -16,7 +16,7 @@ public class GetAccountsByOwnerIdQueryHandler(
     {
         var clientExists = await clientVerificationService.ClientExistsAsync(request.OwnerId);
         if (!clientExists)
-            throw new EntityNotFoundException("Клиент с таким OwnerId не найден.");
+            throw new EntityNotFoundException("Клиент не найден.");
 
         return AccountMapper.ToResponseList(await accountRepository.GetAllByOwnerIdAsync(request.OwnerId));
     }
