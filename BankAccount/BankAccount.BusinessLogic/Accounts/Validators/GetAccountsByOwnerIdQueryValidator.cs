@@ -1,4 +1,5 @@
-﻿using BankAccount.BusinessLogic.Accounts.Queries;
+﻿// ReSharper disable UnusedType.Global Используется в контейнере зависимостей
+using BankAccount.BusinessLogic.Accounts.Queries;
 using FluentValidation;
 
 namespace BankAccount.BusinessLogic.Accounts.Validators;

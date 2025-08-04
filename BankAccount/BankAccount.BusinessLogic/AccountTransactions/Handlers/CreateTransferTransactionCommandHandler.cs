@@ -5,62 +5,66 @@ using BankAccount.Domain.Entities;
 using BankAccount.Domain.Enums;
 using BankAccount.Domain.Exceptions;
 using BankAccount.Domain.Interfaces;
+using Microsoft.Extensions.Logging;
 
 namespace BankAccount.BusinessLogic.AccountTransactions.Handlers;
 
-public class CreateTransferTransactionCommandHandler : ICommandHandler<CreateTransferTransactionCommand, TransferTransactionResponse>
+public class CreateTransferTransactionCommandHandler(
+    ITransactionRepository transactionRepository,
+    IAccountRepository accountRepository,
+    ICurrencyService currencyService,
+    ILogger<CreateTransferTransactionCommandHandler> logger)
+    : ICommandHandler<CreateTransferTransactionCommand, TransferTransactionResponse>
 {
-    private readonly ITransactionRepository _transactionRepository;
-    private readonly IAccountRepository _accountRepository;
-    private readonly ICurrencyService _currencyService;
-
-    public CreateTransferTransactionCommandHandler(ITransactionRepository transactionRepository, IAccountRepository accountRepository, ICurrencyService currencyService)
-    {
-        _transactionRepository = transactionRepository;
-        _accountRepository = accountRepository;
-        _currencyService = currencyService;
-    }
-
     public async Task<TransferTransactionResponse> Handle(CreateTransferTransactionCommand request, CancellationToken cancellationToken)
     {
-        var errors = new Dictionary<string, string[]>();
+        var errors = new List<string>();
 
-        if (!await _accountRepository.ExistsByIdAsync(request.AccountIdFrom))
-            errors.Add(nameof(request.AccountIdFrom), [$"Счёт отправителя '{request.AccountIdFrom}' не существует."]);
-
-        if (!await _accountRepository.ExistsByIdAsync(request.AccountIdTo))
-            errors.Add(nameof(request.AccountIdTo), [$"Счёт получателя '{request.AccountIdTo}' не существует."]);
-
-        if (!await _currencyService.IsCurrencySupportedAsync(request.Currency))
-            errors.Add(nameof(request.Currency), [$"Валюта '{request.Currency}' не поддерживается."]);
-
-        var accountFrom = await _accountRepository.GetByIdAsync(request.AccountIdFrom);
+        var accountFrom = await accountRepository.GetByIdAsync(request.AccountIdFrom);
 
         if (accountFrom is null)
-            throw new AccountNotFoundException(request.AccountIdFrom);
+        {
+            errors.Add("Указанный счёт отправителя не существует.");
+            logger.LogError("Указанный счёт отправителя '{accountIdFrom}' не существует.", request.AccountIdFrom);
+        }
 
-        var accountTo = await _accountRepository.GetByIdAsync(request.AccountIdTo);
+        var accountTo = await accountRepository.GetByIdAsync(request.AccountIdTo);
 
         if (accountTo is null)
-            throw new AccountNotFoundException(request.AccountIdTo);
-
-        if (accountFrom.Balance < request.Amount)
-            errors.Add(nameof(request.Amount), [$"Недостаточно средств на счёте '{request.AccountIdFrom}' для перевода."]);
-
-        if (accountFrom.Currency != accountTo.Currency)
-            errors.Add(nameof(request.Currency), [$"Не совпадают типы счетов '{accountFrom.Currency}' и '{accountTo.Currency}' для перевода."]);
+        {
+            errors.Add("Указанный счёт получателя не существует.");
+            logger.LogError("Указанный счёт получателя '{accountIdTo}' не существует.", request.AccountIdTo);
+        }
 
         if (errors.Count != 0)
-            throw new ValidationException(errors);
+            throw new EntityNotFoundException(errors);
+
+        if (!await currencyService.IsCurrencySupportedAsync(request.Currency))
+        {
+            logger.LogError("Валюта '{currency}' не поддерживается.", request.Currency);
+            throw new ValidationException("Валюта не поддерживается.");
+        }
+
+        if (accountFrom!.Balance < request.Amount)
+        {
+            logger.LogError("Недостаточно средств на счёте '{accountIdFrom}' для списания {amount} {currency}.", request.AccountIdFrom, request.Amount, request.Currency);
+            throw new BadRequestException("Недостаточно средств для списания.");
+        }
+
+        if (accountFrom.Currency != accountTo!.Currency)
+        {
+            logger.LogError("Не совпадают типы счетов '{accountFrom.Currency}' и '{accountTo.Currency}' для перевода.", accountFrom.Currency, accountTo.Currency);
+            throw new BadRequestException("Не совпадают типы счетов.");
+        }
 
         var debitTransaction = new AccountTransaction
         {
             Id = Guid.NewGuid(),
-            AccountId = request.AccountIdFrom,
-            CounterpartyAccountId = request.AccountIdTo,
+            AccountId = request.AccountIdTo,
+            CounterpartyAccountId = request.AccountIdFrom,
             Amount = request.Amount,
             Currency = request.Currency,
-            Type = TransactionType.Debit,
+            Type = ETransactionType.Debit,
             Description = request.Description,
             CreatedAt = request.CreatedAt
         };
@@ -68,18 +72,26 @@ public class CreateTransferTransactionCommandHandler : ICommandHandler<CreateTra
         var creditTransaction = new AccountTransaction
         {
             Id = Guid.NewGuid(),
-            AccountId = request.AccountIdTo,
-            CounterpartyAccountId = request.AccountIdFrom,
+            AccountId = request.AccountIdFrom,
+            CounterpartyAccountId = request.AccountIdTo,
             Amount = request.Amount,
             Currency = request.Currency,
-            Type = TransactionType.Credit,
+            Type = ETransactionType.Credit,
             Description = request.Description,
             CreatedAt = request.CreatedAt
         };
 
-        
-        await _transactionRepository.RegisterTransactionAsync(debitTransaction);
-        await _transactionRepository.RegisterTransactionAsync(creditTransaction);
+        await transactionRepository.RegisterTransactionAsync(debitTransaction);
+        await transactionRepository.RegisterTransactionAsync(creditTransaction);
+
+        accountTo.Balance += request.Amount;
+        accountFrom.Balance -= request.Amount;
+
+        accountTo.Transactions.Add(debitTransaction);
+        accountFrom.Transactions.Add(creditTransaction);
+
+        await accountRepository.UpdateAsync(accountTo);
+        await accountRepository.UpdateAsync(accountFrom);
 
         return new TransferTransactionResponse { DebitTransactionId = debitTransaction.Id, CreditTransactionId = creditTransaction.Id };
     }

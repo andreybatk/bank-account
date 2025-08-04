@@ -8,7 +8,7 @@ public sealed record CreateTransactionCommand(
     Guid? CounterpartyAccountId,
     decimal Amount,
     string Currency,
-    TransactionType Type,
+    ETransactionType Type,
     string Description,
     DateTime CreatedAt
 ) : ICommand<Guid>;

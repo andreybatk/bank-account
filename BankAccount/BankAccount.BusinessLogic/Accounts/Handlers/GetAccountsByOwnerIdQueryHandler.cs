@@ -7,28 +7,17 @@ using BankAccount.Domain.Interfaces;
 
 namespace BankAccount.BusinessLogic.Accounts.Handlers;
 
-public class GetAccountsByOwnerIdQueryHandler : IQueryHandler<GetAccountsByOwnerIdQuery, List<AccountResponse>>
+public class GetAccountsByOwnerIdQueryHandler(
+    IAccountRepository accountRepository,
+    IClientVerificationService clientVerificationService)
+    : IQueryHandler<GetAccountsByOwnerIdQuery, List<AccountResponse>>
 {
-    private readonly IAccountRepository _accountRepository;
-    private readonly IClientVerificationService _clientVerificationService;
-
-    public GetAccountsByOwnerIdQueryHandler(IAccountRepository accountRepository, IClientVerificationService clientVerificationService)
-    {
-        _accountRepository = accountRepository;
-        _clientVerificationService = clientVerificationService;
-    }
-
     public async Task<List<AccountResponse>> Handle(GetAccountsByOwnerIdQuery request, CancellationToken cancellationToken)
     {
-        var errors = new Dictionary<string, string[]>();
-
-        var clientExists = await _clientVerificationService.ClientExistsAsync(request.OwnerId);
+        var clientExists = await clientVerificationService.ClientExistsAsync(request.OwnerId);
         if (!clientExists)
-            errors.Add(nameof(request.OwnerId), ["Клиент с таким OwnerId не найден."]);
+            throw new EntityNotFoundException("Клиент не найден.");
 
-        if (errors.Count != 0)
-            throw new ValidationException(errors);
-
-        return AccountMapper.ToResponseList(await _accountRepository.GetAllByOwnerIdAsync(request.OwnerId));
+        return AccountMapper.ToResponseList(await accountRepository.GetAllByOwnerIdAsync(request.OwnerId));
     }
 }

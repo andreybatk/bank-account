@@ -4,48 +4,50 @@ using BankAccount.Domain.Entities;
 using BankAccount.Domain.Enums;
 using BankAccount.Domain.Exceptions;
 using BankAccount.Domain.Interfaces;
+using Microsoft.Extensions.Logging;
 
 namespace BankAccount.BusinessLogic.AccountTransactions.Handlers;
 
-public class CreateTransactionCommandHandler : ICommandHandler<CreateTransactionCommand, Guid>
+public class CreateTransactionCommandHandler(
+    ITransactionRepository transactionRepository,
+    ICurrencyService currencyService,
+    IAccountRepository accountRepository,
+    ILogger<CreateTransactionCommandHandler> logger)
+    : ICommandHandler<CreateTransactionCommand, Guid>
 {
-    private readonly ITransactionRepository _transactionRepository;
-    private readonly ICurrencyService _currencyService;
-    private readonly IAccountRepository _accountRepository;
-
-    public CreateTransactionCommandHandler(ITransactionRepository transactionRepository, ICurrencyService currencyService, IAccountRepository accountRepository)
-    {
-        _transactionRepository = transactionRepository;
-        _currencyService = currencyService;
-        _accountRepository = accountRepository;
-    }
-
     public async Task<Guid> Handle(CreateTransactionCommand request, CancellationToken cancellationToken)
     {
-        var errors = new Dictionary<string, string[]>();
+        var errors = new List<string>();
 
-        if(!await _accountRepository.ExistsByIdAsync(request.AccountId))
-            errors.Add(nameof(request.AccountId), [$"Указанный счёт '{request.AccountId}' не существует."]);
+        var account = await accountRepository.GetByIdAsync(request.AccountId);
 
-        if (request.CounterpartyAccountId != null && !await _accountRepository.ExistsByIdAsync(request.CounterpartyAccountId.Value))
-            errors.Add(nameof(request.CounterpartyAccountId), [$"Указанный счёт '{request.CounterpartyAccountId}' не существует."]);
+        if (account is null)
+        {
+            errors.Add("Указанный счёт не существует.");
+            logger.LogError("Указанный счёт '{accountId}' не существует.", request.AccountId);
+        }
 
-        if (!await _currencyService.IsCurrencySupportedAsync(request.Currency))
-            errors.Add(nameof(request.Currency), [$"Валюта '{request.Currency}' не поддерживается."]);
+        if (request.CounterpartyAccountId != null && !await accountRepository.ExistsByIdAsync(request.CounterpartyAccountId.Value))
+        {
+            errors.Add("Указанный счёт контрагента не существует.");
+            logger.LogError("Указанный счёт контрагента '{counterpartyAccountId}' не существует.", request.CounterpartyAccountId);
+        }
 
         if (errors.Count != 0)
-            throw new ValidationException(errors);
+            throw new EntityNotFoundException(errors);
 
-        if (request.Type == TransactionType.Debit)
+        if (!await currencyService.IsCurrencySupportedAsync(request.Currency))
         {
-            var account = await _accountRepository.GetByIdAsync(request.AccountId);
+            logger.LogError("Валюта '{currency}' не поддерживается.", request.Currency);
+            throw new ValidationException("Валюта не поддерживается.");
+        }
 
-            if(account is null)
-                throw new AccountNotFoundException(request.AccountId);
-
-            if (account.Balance < request.Amount)
+        if (request.Type == ETransactionType.Credit)
+        {
+            if (account!.Balance < request.Amount)
             {
-                errors.Add(nameof(request.Amount), [$"Недостаточно средств на счёте '{request.AccountId}' для списания {request.Amount} {request.Currency}."]);
+                logger.LogError("Недостаточно средств на счёте '{accountId}' для списания {amount} {currency}.", request.AccountId, request.Amount, request.Currency);
+                throw new BadRequestException("Недостаточно средств для списания.");
             }
         }
 
@@ -61,6 +63,16 @@ public class CreateTransactionCommandHandler : ICommandHandler<CreateTransaction
             CreatedAt = request.CreatedAt
         };
 
-        return await _transactionRepository.RegisterTransactionAsync(transaction);
+        var transactionId = await transactionRepository.RegisterTransactionAsync(transaction);
+
+        account!.Balance = transaction.Type == ETransactionType.Credit
+            ? account.Balance -= transaction.Amount
+            : account.Balance += transaction.Amount;
+
+        account.Transactions.Add(transaction);
+
+        await accountRepository.UpdateAsync(account);
+
+        return transactionId;
     }
 }
