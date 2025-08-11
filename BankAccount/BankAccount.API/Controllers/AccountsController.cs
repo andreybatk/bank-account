@@ -121,6 +121,24 @@ public class AccountsController(IMediator mediator) : ControllerBase
     }
 
     /// <summary>
+    /// Получить баланс по счёту
+    /// </summary>
+    /// <param name="accountId">Id счёта</param>
+    /// <param name="token">Cancellation Token</param>
+    /// <returns></returns>
+    [HttpGet("{accountId:guid}/balance")]
+    [ProducesResponseType(typeof(MbResult<decimal>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(MbResult<object>), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetAccountBalance(Guid accountId, CancellationToken token)
+    {
+        var query = new GetAccountBalanceQuery(accountId);
+
+        var balance = await mediator.Send(query, token);
+
+        return Ok(MbResult<decimal>.Success(balance));
+    }
+
+    /// <summary>
     /// Проверить существование счёта
     /// </summary>
     /// <param name="ownerId">Id клиента</param>
