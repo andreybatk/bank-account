@@ -1,4 +1,5 @@
 ﻿// ReSharper disable CollectionNeverQueried.Local Класс-заглушка, коллекция оставлена для дальнейшего использования
+// ReSharper disable UnusedType.Global Использовалось для работы в памяти
 using BankAccount.Domain.Entities;
 using BankAccount.Domain.Interfaces;
 

@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Testcontainers.PostgreSql;
+// ReSharper disable ClassNeverInstantiated.Global Используется в интеграционных тестах
+#pragma warning disable CS8618 // Инициализируется в InitializeAsync
 
 namespace BankAccount.Tests;
 

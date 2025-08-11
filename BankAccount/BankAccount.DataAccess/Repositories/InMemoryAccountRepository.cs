@@ -1,4 +1,5 @@
-﻿using BankAccount.Domain.Entities;
+﻿// ReSharper disable UnusedType.Global Использовалось для работы в памяти
+using BankAccount.Domain.Entities;
 using BankAccount.Domain.Interfaces;
 
 namespace BankAccount.DataAccess.Repositories;

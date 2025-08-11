@@ -27,8 +27,8 @@ public class ParallelTransferTests(TestApplicationFactory factory)
     public async Task ParallelTransfers_ShouldPreserveTotalBalance()
     {
         // arrange
-        var accountFromId = await CreateTestAccountAsync(1000m);
-        var accountToId = await CreateTestAccountAsync(1000m);
+        var accountFromId = _accountFromId;
+        var accountToId = _accountToId;
 
         var initialTotal = await GetBalanceAsync(accountFromId) + await GetBalanceAsync(accountToId);
 
