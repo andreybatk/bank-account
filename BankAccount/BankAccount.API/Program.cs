@@ -86,6 +86,7 @@ public class Program
             config.AddOpenBehavior(typeof(ValidationBehavior<,>));
         });
 
+        ValidatorOptions.Global.DefaultRuleLevelCascadeMode = CascadeMode.Stop;
         builder.Services.AddValidatorsFromAssembly(typeof(BusinessLogicAssemblyMarker).Assembly);
 
         builder.Services.AddScoped<IAccountRepository, AccountRepository>();
