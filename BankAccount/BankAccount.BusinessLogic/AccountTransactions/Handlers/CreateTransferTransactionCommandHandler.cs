@@ -1,10 +1,12 @@
 ﻿using BankAccount.BusinessLogic.Abstractions.Messaging;
 using BankAccount.BusinessLogic.AccountTransactions.Commands;
 using BankAccount.BusinessLogic.AccountTransactions.DTOs;
+using BankAccount.DataAccess;
 using BankAccount.Domain.Entities;
 using BankAccount.Domain.Enums;
 using BankAccount.Domain.Exceptions;
 using BankAccount.Domain.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace BankAccount.BusinessLogic.AccountTransactions.Handlers;
@@ -13,7 +15,8 @@ public class CreateTransferTransactionCommandHandler(
     ITransactionRepository transactionRepository,
     IAccountRepository accountRepository,
     ICurrencyService currencyService,
-    ILogger<CreateTransferTransactionCommandHandler> logger)
+    ILogger<CreateTransferTransactionCommandHandler> logger,
+    ApplicationDbContext context)
     : ICommandHandler<CreateTransferTransactionCommand, TransferTransactionResponse>
 {
     public async Task<TransferTransactionResponse> Handle(CreateTransferTransactionCommand request, CancellationToken cancellationToken)
@@ -57,42 +60,53 @@ public class CreateTransferTransactionCommandHandler(
             throw new BadRequestException("Не совпадают типы счетов.");
         }
 
-        var debitTransaction = new AccountTransaction
+        await using var tx = await context.Database.BeginTransactionAsync(
+            System.Data.IsolationLevel.Serializable, cancellationToken);
+
+        try
         {
-            Id = Guid.NewGuid(),
-            AccountId = request.AccountIdTo,
-            CounterpartyAccountId = request.AccountIdFrom,
-            Amount = request.Amount,
-            Currency = request.Currency,
-            Type = ETransactionType.Debit,
-            Description = request.Description,
-            CreatedAt = request.CreatedAt
-        };
+            var debitTransaction = new AccountTransaction
+            {
+                Id = Guid.NewGuid(),
+                AccountId = request.AccountIdTo,
+                CounterpartyAccountId = request.AccountIdFrom,
+                Amount = request.Amount,
+                Currency = request.Currency,
+                Type = ETransactionType.Debit,
+                Description = request.Description,
+                CreatedAt = request.CreatedAt
+            };
 
-        var creditTransaction = new AccountTransaction
+            var creditTransaction = new AccountTransaction
+            {
+                Id = Guid.NewGuid(),
+                AccountId = request.AccountIdFrom,
+                CounterpartyAccountId = request.AccountIdTo,
+                Amount = request.Amount,
+                Currency = request.Currency,
+                Type = ETransactionType.Credit,
+                Description = request.Description,
+                CreatedAt = request.CreatedAt
+            };
+
+            await transactionRepository.RegisterTransactionAsync(debitTransaction);
+            await transactionRepository.RegisterTransactionAsync(creditTransaction);
+
+            accountTo.Balance += request.Amount;
+            accountFrom.Balance -= request.Amount;
+
+            await accountRepository.UpdateAsync(accountTo);
+            await accountRepository.UpdateAsync(accountFrom);
+
+            await tx.CommitAsync(cancellationToken);
+            return new TransferTransactionResponse { DebitTransactionId = debitTransaction.Id, CreditTransactionId = creditTransaction.Id };
+
+        }
+        catch (Exception ex)
         {
-            Id = Guid.NewGuid(),
-            AccountId = request.AccountIdFrom,
-            CounterpartyAccountId = request.AccountIdTo,
-            Amount = request.Amount,
-            Currency = request.Currency,
-            Type = ETransactionType.Credit,
-            Description = request.Description,
-            CreatedAt = request.CreatedAt
-        };
-
-        await transactionRepository.RegisterTransactionAsync(debitTransaction);
-        await transactionRepository.RegisterTransactionAsync(creditTransaction);
-
-        accountTo.Balance += request.Amount;
-        accountFrom.Balance -= request.Amount;
-
-        accountTo.Transactions.Add(debitTransaction);
-        accountFrom.Transactions.Add(creditTransaction);
-
-        await accountRepository.UpdateAsync(accountTo);
-        await accountRepository.UpdateAsync(accountFrom);
-
-        return new TransferTransactionResponse { DebitTransactionId = debitTransaction.Id, CreditTransactionId = creditTransaction.Id };
+            logger.LogError("Ошибка при создании транзакции. {message}", ex.Message);
+            await tx.RollbackAsync(cancellationToken);
+            throw;
+        }
     }
 }

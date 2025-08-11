@@ -16,9 +16,33 @@ services:
     ports:
       - "8080:80"
     depends_on:
-      - keycloak
+        postgres:
+          condition: service_healthy
+        keycloak:
+          condition: service_started
     networks:
       - bankaccount-network
+
+  postgres:
+    container_name: bankaccount-postgres
+    image: postgres
+    restart: always
+    environment:
+        POSTGRES_DB: bankaccount
+        POSTGRES_USER: postgres
+        POSTGRES_PASSWORD: postgres
+    ports:
+        - 5432:5432
+    volumes:
+        - bankaccount-postgres-data:/var/lib/postgresql/data
+    networks:
+        - bankaccount-network
+    healthcheck:
+        test: ["CMD", "pg_isready", "-U", "postgres"]
+        interval: 5s
+        timeout: 3s
+        retries: 10
+        start_period: 5s
 
   keycloak:
     image: quay.io/keycloak/keycloak:25.0.0
@@ -36,3 +60,4 @@ services:
 
 volumes:
   keycloak_data:
+  bankaccount-postgres-data:

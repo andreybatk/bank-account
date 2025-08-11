@@ -1,9 +1,11 @@
 ﻿using BankAccount.BusinessLogic.Abstractions.Messaging;
 using BankAccount.BusinessLogic.AccountTransactions.Commands;
+using BankAccount.DataAccess;
 using BankAccount.Domain.Entities;
 using BankAccount.Domain.Enums;
 using BankAccount.Domain.Exceptions;
 using BankAccount.Domain.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace BankAccount.BusinessLogic.AccountTransactions.Handlers;
@@ -12,7 +14,8 @@ public class CreateTransactionCommandHandler(
     ITransactionRepository transactionRepository,
     ICurrencyService currencyService,
     IAccountRepository accountRepository,
-    ILogger<CreateTransactionCommandHandler> logger)
+    ILogger<CreateTransactionCommandHandler> logger,
+    ApplicationDbContext context)
     : ICommandHandler<CreateTransactionCommand, Guid>
 {
     public async Task<Guid> Handle(CreateTransactionCommand request, CancellationToken cancellationToken)
@@ -51,28 +54,39 @@ public class CreateTransactionCommandHandler(
             }
         }
 
-        var transaction = new AccountTransaction
+        await using var tx = await context.Database.BeginTransactionAsync(
+            System.Data.IsolationLevel.Serializable, cancellationToken);
+
+        try
         {
-            Id = Guid.NewGuid(),
-            AccountId = request.AccountId,
-            CounterpartyAccountId = request.CounterpartyAccountId,
-            Amount = request.Amount,
-            Currency = request.Currency,
-            Type = request.Type,
-            Description = request.Description,
-            CreatedAt = request.CreatedAt
-        };
+            var transaction = new AccountTransaction
+            {
+                Id = Guid.NewGuid(),
+                AccountId = request.AccountId,
+                CounterpartyAccountId = request.CounterpartyAccountId,
+                Amount = request.Amount,
+                Currency = request.Currency,
+                Type = request.Type,
+                Description = request.Description,
+                CreatedAt = request.CreatedAt
+            };
 
-        var transactionId = await transactionRepository.RegisterTransactionAsync(transaction);
+            var transactionId = await transactionRepository.RegisterTransactionAsync(transaction);
 
-        account!.Balance = transaction.Type == ETransactionType.Credit
-            ? account.Balance -= transaction.Amount
-            : account.Balance += transaction.Amount;
+            account!.Balance = transaction.Type == ETransactionType.Credit
+                ? account.Balance -= transaction.Amount
+                : account.Balance += transaction.Amount;
 
-        account.Transactions.Add(transaction);
+            await accountRepository.UpdateAsync(account);
+            await tx.CommitAsync(cancellationToken);
 
-        await accountRepository.UpdateAsync(account);
-
-        return transactionId;
+            return transactionId;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError("Ошибка при создании транзакции. {message}", ex.Message);
+            await tx.RollbackAsync(cancellationToken);
+            throw;
+        }
     }
 }
