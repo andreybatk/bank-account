@@ -1,5 +1,5 @@
-﻿using BankAccount.BusinessLogic.AccountTransactions.Commands;
-using BankAccount.Domain.Enums;
+﻿// ReSharper disable UnusedType.Global Используется в контейнере зависимостей
+using BankAccount.BusinessLogic.AccountTransactions.Commands;
 using FluentValidation;
 
 namespace BankAccount.BusinessLogic.AccountTransactions.Validators;
@@ -25,11 +25,5 @@ public class CreateTransactionCommandValidator : AbstractValidator<CreateTransac
 
         RuleFor(x => x.Type)
             .IsInEnum().WithMessage("Указан недопустимый тип транзакции.");
-
-        When(x => x.Type == TransactionType.Debit, () =>
-        {
-            RuleFor(x => x.CounterpartyAccountId)
-                .NotNull().WithMessage("Для дебетовой транзакции необходимо указать счёт получателя.");
-        });
     }
 }

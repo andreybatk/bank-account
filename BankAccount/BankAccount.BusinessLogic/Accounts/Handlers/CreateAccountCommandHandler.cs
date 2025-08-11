@@ -6,33 +6,21 @@ using BankAccount.Domain.Interfaces;
 
 namespace BankAccount.BusinessLogic.Accounts.Handlers;
 
-public class CreateAccountCommandHandler : ICommandHandler<CreateAccountCommand, Guid>
+public class CreateAccountCommandHandler(
+    IAccountRepository accountRepository,
+    IClientVerificationService clientVerificationService,
+    ICurrencyService currencyService)
+    : ICommandHandler<CreateAccountCommand, Guid>
 {
-    private readonly IAccountRepository _accountRepository;
-    private readonly IClientVerificationService _clientVerificationService;
-    private readonly ICurrencyService _currencyService;
-
-    public CreateAccountCommandHandler(IAccountRepository accountRepository, IClientVerificationService clientVerificationService, ICurrencyService currencyService)
-    {
-        _accountRepository = accountRepository;
-        _clientVerificationService = clientVerificationService;
-        _currencyService = currencyService;
-    }
-
     public async Task<Guid> Handle(CreateAccountCommand request, CancellationToken cancellationToken)
     {
-        var errors = new Dictionary<string, string[]>();
-
-        var clientExists = await _clientVerificationService.ClientExistsAsync(request.OwnerId);
+        var clientExists = await clientVerificationService.ClientExistsAsync(request.OwnerId);
         if (!clientExists)
-            errors.Add(nameof(request.OwnerId), ["Клиент с таким OwnerId не найден."]);
+            throw new EntityNotFoundException("Клиент не найден.");
 
-        var currencySupported = await _currencyService.IsCurrencySupportedAsync(request.Currency);
+        var currencySupported = await currencyService.IsCurrencySupportedAsync(request.Currency);
         if (!currencySupported)
-            errors.Add(nameof(request.Currency), [$"Валюта '{request.Currency}' не поддерживается."]);
-
-        if (errors.Count != 0)
-            throw new ValidationException(errors);
+            throw new ValidationException("Валюта не поддерживается.");
 
         var account = new Account
         {
@@ -46,6 +34,6 @@ public class CreateAccountCommandHandler : ICommandHandler<CreateAccountCommand,
             CloseDate = request.CloseDate
         };
 
-        return await _accountRepository.CreateAsync(account);
+        return await accountRepository.CreateAsync(account);
     }
 }

@@ -1,4 +1,5 @@
-﻿using BankAccount.Domain.Enums;
+﻿// ReSharper disable PropertyCanBeMadeInitOnly.Global Сущность, должна иметь возможность полностью измениться
+using BankAccount.Domain.Enums;
 
 namespace BankAccount.Domain.Entities;
 
@@ -9,7 +10,7 @@ public class AccountTransaction
     /// </summary>
     public Guid Id { get; set; }
     /// <summary>
-    /// Идентификатор аккаунта
+    /// Идентификатор счёта
     /// </summary>
     public Guid AccountId { get; set; }
     /// <summary>
@@ -27,7 +28,7 @@ public class AccountTransaction
     /// <summary>
     /// Тип транзакции
     /// </summary>
-    public TransactionType Type { get; set; }
+    public ETransactionType Type { get; set; }
     /// <summary>
     /// Описание транзакции
     /// </summary>

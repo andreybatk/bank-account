@@ -5,7 +5,7 @@ namespace BankAccount.BusinessLogic.Accounts.Commands;
 
 public sealed record CreateAccountCommand(
     Guid OwnerId,
-    AccountType Type,
+    EAccountType Type,
     string Currency,
     decimal InitialBalance,
     decimal? InterestRate,

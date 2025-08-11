@@ -1,4 +1,5 @@
-﻿using BankAccount.Domain.Entities;
+﻿// ReSharper disable CollectionNeverQueried.Local Класс-заглушка, коллекция оставлена для дальнейшего использования
+using BankAccount.Domain.Entities;
 using BankAccount.Domain.Interfaces;
 
 namespace BankAccount.DataAccess.Repositories;

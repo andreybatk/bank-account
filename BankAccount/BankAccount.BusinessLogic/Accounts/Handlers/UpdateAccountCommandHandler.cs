@@ -6,36 +6,21 @@ using BankAccount.Domain.Interfaces;
 
 namespace BankAccount.BusinessLogic.Accounts.Handlers;
 
-public class UpdateAccountCommandHandler : ICommandHandler<UpdateAccountCommand, Guid>
+public class UpdateAccountCommandHandler(
+    IAccountRepository accountRepository,
+    IClientVerificationService clientVerificationService,
+    ICurrencyService currencyService)
+    : ICommandHandler<UpdateAccountCommand, Guid>
 {
-    private readonly IAccountRepository _accountRepository;
-    private readonly IClientVerificationService _clientVerificationService;
-    private readonly ICurrencyService _currencyService;
-
-    public UpdateAccountCommandHandler(
-        IAccountRepository accountRepository,
-        IClientVerificationService clientVerificationService,
-        ICurrencyService currencyService)
-    {
-        _accountRepository = accountRepository;
-        _clientVerificationService = clientVerificationService;
-        _currencyService = currencyService;
-    }
-
     public async Task<Guid> Handle(UpdateAccountCommand request, CancellationToken cancellationToken)
     {
-        var errors = new Dictionary<string, string[]>();
-
-        var clientExists = await _clientVerificationService.ClientExistsAsync(request.OwnerId);
+        var clientExists = await clientVerificationService.ClientExistsAsync(request.OwnerId);
         if (!clientExists)
-            errors.Add(nameof(request.OwnerId), ["Клиент с таким OwnerId не найден."]);
+            throw new EntityNotFoundException("Клиент не найден.");
 
-        var currencySupported = await _currencyService.IsCurrencySupportedAsync(request.Currency);
+        var currencySupported = await currencyService.IsCurrencySupportedAsync(request.Currency);
         if (!currencySupported)
-            errors.Add(nameof(request.Currency), [$"Валюта '{request.Currency}' не поддерживается."]);
-
-        if (errors.Count != 0)
-            throw new ValidationException(errors);
+            throw new ValidationException("Валюта не поддерживается.");
 
         var account = new Account
         {
@@ -43,17 +28,17 @@ public class UpdateAccountCommandHandler : ICommandHandler<UpdateAccountCommand,
             OwnerId = request.OwnerId,
             Type = request.Type,
             Currency = request.Currency,
-            Balance = request.InitialBalance,
+            Balance = request.Balance,
             InterestRate = request.InterestRate,
             OpenDate = request.OpenDate,
             CloseDate = request.CloseDate
         };
 
-        var resultGuid = await _accountRepository.UpdateAsync(account);
+        var resultId = await accountRepository.UpdateAsync(account);
 
-        if(resultGuid is null)
-            throw new AccountNotFoundException(account.Id);
+        if(resultId is null)
+            throw new EntityNotFoundException("Счёт с таким AccountId не найден.");
 
-        return resultGuid.Value;
+        return resultId.Value;
     }
 }

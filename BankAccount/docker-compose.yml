@@ -1,0 +1,38 @@
+version: '3.9'
+
+networks:
+  bankaccount-network:
+    driver: bridge
+
+services:
+  bankaccount.api:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=80
+    image: ${DOCKER_REGISTRY-}bankaccountapi
+    build:
+      context: .
+      dockerfile: BankAccount.API/Dockerfile
+    ports:
+      - "8080:80"
+    depends_on:
+      - keycloak
+    networks:
+      - bankaccount-network
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:25.0.0
+    command: start-dev --import-realm
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    ports:
+      - "9090:8080"
+    networks:
+      - bankaccount-network
+    volumes:
+      - keycloak_data:/opt/keycloak/data
+      - ./realm-export:/opt/keycloak/data/import
+
+volumes:
+  keycloak_data:

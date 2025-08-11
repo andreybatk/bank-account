@@ -1,11 +1,12 @@
-﻿using BankAccount.Domain.Enums;
+﻿// ReSharper disable PropertyCanBeMadeInitOnly.Global Сущность, должна иметь возможность полностью измениться
+using BankAccount.Domain.Enums;
 
 namespace BankAccount.Domain.Entities;
 
 public class Account
 {
     /// <summary>
-    /// Идентификатор аккаунта
+    /// Идентификатор счёта
     /// </summary>
     public Guid Id { get; set; }
     /// <summary>
@@ -15,7 +16,7 @@ public class Account
     /// <summary>
     /// Тип аккаунта
     /// </summary>
-    public AccountType Type { get; set; }
+    public EAccountType Type { get; set; }
     /// <summary>
     /// Валюта (ISO4217)
     /// </summary>
@@ -39,5 +40,7 @@ public class Account
     /// <summary>
     /// Транзакции аккаунта
     /// </summary>
+    // ReSharper disable AutoPropertyCanBeMadeGetOnly.Global Сеттер оставлен, так как пригодится при использовании БД и EF Core
+    // ReSharper disable once CollectionNeverUpdated.Global Коллекция оставлена так как пригодится при использовании БД и EF Core
     public List<AccountTransaction> Transactions { get; set; } = [];
 }

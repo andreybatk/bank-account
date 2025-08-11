@@ -1,4 +1,5 @@
-﻿using Microsoft.OpenApi.Models;
+﻿// ReSharper disable ClassNeverInstantiated.Global Класс инициализируется через рефлексию в Program
+using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace BankAccount.API.Helpers;
