@@ -31,4 +31,3 @@ docker-compose up --build
 
 - Backend (API + Swagger) будет доступен по адресу: http://localhost:8080/swagger/index.html
 - Hangfire будет доступен по адресу: http://localhost:8080/hangfire
-- 
