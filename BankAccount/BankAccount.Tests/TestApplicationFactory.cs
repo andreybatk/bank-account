@@ -14,7 +14,7 @@ namespace BankAccount.Tests;
 public class TestApplicationFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
     private PostgreSqlContainer _postgreSqlContainer;
-    private string ConnectionString => _postgreSqlContainer.GetConnectionString();
+    private string ConnectionString => _postgreSqlContainer.GetConnectionString()!;
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -49,7 +49,7 @@ public class TestApplicationFactory : WebApplicationFactory<Program>, IAsyncLife
         await _postgreSqlContainer.StartAsync();
     }
 
-    public async Task DisposeAsync()
+    public new async Task DisposeAsync()
     {
         await _postgreSqlContainer.StopAsync();
         await _postgreSqlContainer.DisposeAsync();
