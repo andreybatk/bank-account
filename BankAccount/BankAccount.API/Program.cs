@@ -3,6 +3,7 @@ using BankAccount.API.Middlewares;
 using BankAccount.BusinessLogic;
 using BankAccount.BusinessLogic.Services;
 using BankAccount.BusinessLogic.Validators;
+using BankAccount.DataAccess;
 using BankAccount.DataAccess.Repositories;
 using BankAccount.Domain;
 using BankAccount.Domain.Interfaces;
@@ -11,10 +12,13 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
+using Hangfire;
+using Hangfire.PostgreSql;
+using Microsoft.EntityFrameworkCore;
 
 namespace BankAccount.API;
 
-public static class Program
+public class Program
 {
     public static void Main(string[] args)
     {
@@ -23,6 +27,20 @@ public static class Program
         var authenticationConfiguration = new AuthenticationConfiguration();
         builder.Configuration.Bind("Authentication", authenticationConfiguration);
         builder.Services.AddSingleton(authenticationConfiguration);
+
+        var connectionString = builder.Configuration.GetConnectionString(
+            "DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+
+        if (builder.Environment.EnvironmentName != "Testing")
+        {
+            builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(connectionString));
+
+            builder.Services.AddHangfire(config =>
+                config.UsePostgreSqlStorage(options => { options.UseNpgsqlConnection(connectionString); }));
+
+            builder.Services.AddHangfireServer();
+        }
+
         builder.Services.AddHttpClient();
 
         builder.Services
@@ -68,10 +86,12 @@ public static class Program
             config.AddOpenBehavior(typeof(ValidationBehavior<,>));
         });
 
+        ValidatorOptions.Global.DefaultRuleLevelCascadeMode = CascadeMode.Stop;
         builder.Services.AddValidatorsFromAssembly(typeof(BusinessLogicAssemblyMarker).Assembly);
 
-        builder.Services.AddSingleton<IAccountRepository, InMemoryAccountRepository>();
-        builder.Services.AddSingleton<ITransactionRepository, InMemoryTransactionRepository>();
+        builder.Services.AddScoped<IAccountRepository, AccountRepository>();
+        builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
+        builder.Services.AddScoped<AccrueInterestService>();
         builder.Services.AddSingleton<ICurrencyService, CurrencyService>();
         builder.Services.AddSingleton<IClientVerificationService, ClientVerificationService>();
 
@@ -85,27 +105,49 @@ public static class Program
             });
         });
 
-        builder.Services.AddAuthentication(options =>
+        if (builder.Environment.EnvironmentName != "Testing")
         {
-            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-        })
-        .AddJwtBearer(options =>
-        {
-            options.Authority = authenticationConfiguration.UrlKeycloak;
-            options.RequireHttpsMetadata = false;
-            options.TokenValidationParameters = new TokenValidationParameters
-            {
-                ValidIssuer = authenticationConfiguration.ValidIssuer,
-                ValidAudience = authenticationConfiguration.ValidAudience,
-                ValidateIssuer = true,
-                ValidateAudience = true
-            };
-        });
-
-        builder.Services.AddAuthorization();
+            builder.Services.AddAuthentication(options =>
+                {
+                    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                })
+                .AddJwtBearer(options =>
+                {
+                    options.Authority = authenticationConfiguration.UrlKeycloak;
+                    options.RequireHttpsMetadata = false;
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidIssuer = authenticationConfiguration.ValidIssuer,
+                        ValidAudience = authenticationConfiguration.ValidAudience,
+                        ValidateIssuer = true,
+                        ValidateAudience = true
+                    };
+                });
+            builder.Services.AddAuthorization();
+        }
 
         var app = builder.Build();
+
+        if (builder.Environment.EnvironmentName != "Testing")
+        {
+            app.UseHangfireDashboard("/hangfire", new DashboardOptions
+            {
+                Authorization = [new AllowAnonymousDashboardAuthorizationFilter()],
+                IgnoreAntiforgeryToken = true
+            });
+
+            RecurringJob.AddOrUpdate<AccrueInterestService>(
+                "daily-interest",
+                handler => handler.ProcessAllDepositsAsync(CancellationToken.None),
+                Cron.Daily);
+
+            using var scope = app.Services.CreateScope();
+            var services = scope.ServiceProvider;
+            var dbContext = services.GetRequiredService<ApplicationDbContext>();
+
+            dbContext.Database.Migrate();
+        }
 
         if (app.Environment.IsDevelopment())
         {

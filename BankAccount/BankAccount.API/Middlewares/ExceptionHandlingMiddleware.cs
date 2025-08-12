@@ -12,12 +12,11 @@ public sealed class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<Ex
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Unhandled exception occurred");
-            await HandleExceptionAsync(context, ex);
+            await HandleExceptionAsync(context, ex, logger);
         }
     }
 
-    private static async Task HandleExceptionAsync(HttpContext context, Exception exception)
+    private static async Task HandleExceptionAsync(HttpContext context, Exception exception, ILogger<ExceptionHandlingMiddleware> logger)
     {
         context.Response.ContentType = "application/json";
 
@@ -52,6 +51,15 @@ public sealed class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<Ex
                 };
                 break;
 
+            case Domain.Exceptions.ConflictException conflictException:
+                context.Response.StatusCode = StatusCodes.Status409Conflict;
+                response = new MbResult<object>
+                {
+                    Value = null,
+                    MbError = conflictException.Errors
+                };
+                break;
+
             default:
                 context.Response.StatusCode = StatusCodes.Status500InternalServerError;
                 response = new MbResult<object>
@@ -59,6 +67,7 @@ public sealed class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<Ex
                     Value = null,
                     MbError = ["Произошла непредвиденная ошибка"]
                 };
+				logger.LogError(exception, "Unhandled exception occurred");
                 break;
         }
 
